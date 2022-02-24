@@ -1,0 +1,76 @@
+---
+title: "Group 1 Midterm"
+author: "Evelyn Campo, Xiao Qi, Nusrat Prithee"
+date: "today"
+# date: "`r Sys.Date()`"
+output:
+  html_document:
+    code_folding: hide
+    number_sections: false
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+
+```{r init, include=FALSE}
+library(ezids)
+library(ggplot2)
+knitr::opts_chunk$set(warning = F, results = "hide", message = F)
+options(scientific=T, digits = 3) 
+```
+
+
+```{r}
+
+tvdata <- data.frame(read.csv("tv_shows.csv"))
+str(tvdata)
+
+```
+
+```{r}
+
+tvdata$IMDb<-gsub("/10","",as.character(tvdata$IMDb))
+tvdata$Rotten.Tomatoes<-gsub("/100","",as.character(tvdata$Rotten.Tomatoes))
+tvdata$IMDb<-as.double(tvdata$IMDb)
+tvdata$Rotten.Tomatoes<-as.double(tvdata$Rotten.Tomatoes)
+str(tvdata)
+
+```
+
+```{r}
+
+print("Age:")
+table(tvdata$Age)
+print("Netflix:")
+table(tvdata$Netflix)
+print("Hulu:")
+table(tvdata$Hulu)
+print("Prime Video:")
+table(tvdata$Prime.Video)
+print("Disney:")
+table(tvdata$Disney.)
+
+```
+
+
+```{r}
+hist(tvdata$IMDb,breaks=20)
+hist(tvdata$Rotten.Tomatoes,breaks=20)
+
+```
+
+```{r}
+
+ggplot(data=tvdata, aes(x=IMDb, y=Rotten.Tomatoes, col=Age)) + geom_point() + ggtitle("Comparison of Rating Systems")
+
+```
+
+```{r}
+
+hist(tvdata$Year, breaks=100)
+
+```
+
