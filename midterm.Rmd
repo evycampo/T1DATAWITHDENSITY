@@ -74,3 +74,12 @@ hist(tvdata$Year, breaks=100)
 
 ```
 
+```{r}
+
+netflixtv <- subset(tvdata, Netflix==1)
+hulutv <- subset(tvdata, Hulu==1)
+primetv <- subset(tvdata, Prime.Video==1)
+disneytv <- subset(tvdata, Disney.==1)
+
+```
+
