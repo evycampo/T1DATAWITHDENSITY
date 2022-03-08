@@ -1,0 +1,164 @@
+---
+title: "Group 1 Midterm"
+author: "Evelyn Campo, Xiao Qi, Nusrat Prithee"
+date: "today"
+# date: "`r Sys.Date()`"
+output:
+  html_document:
+    code_folding: hide
+    number_sections: false
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+
+```{r init, include=FALSE}
+library(ezids)
+library(ggplot2)
+knitr::opts_chunk$set(warning = F, results = "hide", message = F)
+options(scientific=T, digits = 3) 
+```
+
+
+```{r}
+
+tvdata <- data.frame(read.csv("tv_shows.csv"))
+tvdata$IMDb<-gsub("/10","",as.character(tvdata$IMDb))
+tvdata$Rotten.Tomatoes<-gsub("/100","",as.character(tvdata$Rotten.Tomatoes))
+tvdata$IMDb<-as.double(tvdata$IMDb)
+tvdata$Rotten.Tomatoes<-as.double(tvdata$Rotten.Tomatoes)
+str(tvdata)
+View(tvdata)
+
+
+```
+
+
+
+```{r}
+
+print("Age:")
+table(tvdata$Age)
+print("Netflix:")
+table(tvdata$Netflix)
+print("Hulu:")
+table(tvdata$Hulu)
+print("Prime Video:")
+table(tvdata$Prime.Video)
+print("Disney:")
+table(tvdata$Disney.)
+
+```
+
+```{r}
+```
+.Which year published the highest number of TV shows? 
+```{r}
+
+library(ggplot2)
+ggplot(data=tvdata,aes(x=Year,)) + 
+geom_histogram(col="red", 
+               fill="green", 
+               alpha = .7) + 
+labs(title="Year histogram") +
+labs(x="Year", y="frequency")
+
+
+```
+
+```{r}
+
+netflixtv <- subset(tvdata, Netflix==1)
+hulutv <- subset(tvdata, Hulu==1)
+primetv <- subset(tvdata, Prime.Video==1)
+disneytv <- subset(tvdata, Disney.==1)
+View(netflixtv)
+View(hulutv)
+View(primetv)
+View(disneytv)
+
+
+```
+
+
+```{r q06}
+net_rating<-t.test(netflixtv$IMDb,netflixtv$Rotten.Tomatoes)
+hulu_rating<-t.test(hulutv$IMDb,hulutv$Rotten.Tomatoes)
+prime_rating<-t.test(primetv$IMDb,primetv$Rotten.Tomatoes)
+disney_rating<-t.test(disneytv$IMDb,disneytv$Netflix)
+
+```
+
+
+```{r}
+library(ggplot2)
+ggplot(data=netflixtv,aes(x=IMDb,)) + 
+geom_histogram(col="red", 
+               fill="green", 
+               alpha = .7) + 
+labs(title="Netflix IMDb histogram") +
+labs(x="IMDB", y="frequency")
+
+ggplot(data=netflixtv,aes(x=Rotten.Tomatoes,)) + 
+geom_histogram(col="red", 
+               fill="green", 
+               alpha = .7) + 
+labs(title="Netflix Rotten.Tomatoes histogram") +
+labs(x="Rotten.Tomatoes", y="frequency")
+
+ggplot(data=hulutv,aes(x=IMDb,)) + 
+geom_histogram(col="red", 
+               fill="green", 
+               alpha = .7) + 
+labs(title="Hulu IMDb histogram") +
+labs(x="IMDB", y="frequency")
+
+ggplot(data=hulutv,aes(x=Rotten.Tomatoes,)) + 
+geom_histogram(col="red", 
+               fill="green", 
+               alpha = .7) + 
+labs(title="hulu Rotten.Tomatoes histogram") +
+labs(x="Rotten.Tomatoes", y="frequency")
+
+
+ggplot(data=primetv,aes(x=IMDb,)) + 
+geom_histogram(col="red", 
+               fill="green", 
+               alpha = .7) + 
+labs(title="prime IMDb histogram") +
+labs(x="IMDB", y="frequency")
+
+ggplot(data=primetv,aes(x=Rotten.Tomatoes,)) + 
+geom_histogram(col="red", 
+               fill="green", 
+               alpha = .7) + 
+labs(title="prime Rotten.Tomatoes histogram") +
+labs(x="Rotten.Tomatoes", y="frequency")
+```
+Test of Independence. To check whether IMDb and RRT is independent.
+```{r}
+contable_IMDb = table(netflixtv$IMDb)
+contable_IMDb
+
+contable_RTT = table(netflixtv$Rotten.Tomatoes)
+contable_RTT
+
+
+```
+```{r}
+chitest = chisq.test(contable_IMDb)
+chitest
+chitest$statistic
+chitest$p.value
+chitest$parameter
+
+chitest = chisq.test(contable_RTT)
+chitest
+chitest$statistic
+chitest$p.value
+chitest$parameter
+
+```
