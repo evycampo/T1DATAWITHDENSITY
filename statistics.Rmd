@@ -75,11 +75,6 @@ netflixtv <- subset(tvdata, Netflix==1)
 hulutv <- subset(tvdata, Hulu==1)
 primetv <- subset(tvdata, Prime.Video==1)
 disneytv <- subset(tvdata, Disney.==1)
-View(netflixtv)
-View(hulutv)
-View(primetv)
-View(disneytv)
-
 
 ```
 
