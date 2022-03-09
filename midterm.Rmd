@@ -1,6 +1,6 @@
 ---
 title: "Group 1 Midterm"
-author: "Evelyn Campo, Xiao Qi, Nusrat Prithee"
+author: "Evelyn Campo, Xiao Qi, Nusrat Prithee, Roman Kosarzycki"
 date: "today"
 # date: "`r Sys.Date()`"
 output:
@@ -20,12 +20,17 @@ library(ezids)
 library(ggplot2)
 knitr::opts_chunk$set(warning = F, results = "hide", message = F)
 options(scientific=T, digits = 3) 
+Mode <- function(x) {
+  ux <- unique(x,na.rm = TRUE)
+  ux[which.max(tabulate(match(x, ux)))]
+}
 ```
 
 
 ```{r}
 
 tvdata <- data.frame(read.csv("tv_shows.csv"))
+tvdata$Age[tvdata$Age==""] <- NA
 str(tvdata)
 
 ```
@@ -57,16 +62,26 @@ table(tvdata$Disney.)
 
 
 ```{r}
-hist(tvdata$IMDb,breaks=20)
-hist(tvdata$Rotten.Tomatoes,breaks=20)
+ggplot(tvdata, aes(x=IMDb)) + geom_histogram(binwidth = 0.1)+ggtitle("Frequency of IMDb Ratings") +geom_vline(xintercept = mean(tvdata$IMDb,na.rm = TRUE), color = "red", size=1.5)+geom_vline(xintercept = median(tvdata$IMDb,na.rm = TRUE), color = "blue", size=1.5)+geom_vline(xintercept = 7.4, color = "orange", size=1.5)
+
+ggplot(tvdata, aes(x=Rotten.Tomatoes)) + geom_histogram(binwidth = 1)+ggtitle("Frequency of Rotten Tomatoes Ratings")+geom_vline(xintercept = mean(tvdata$Rotten.Tomatoes,na.rm = TRUE), color = "red", size=1.5)+geom_vline(xintercept = median(tvdata$Rotten.Tomatoes,na.rm = TRUE), color = "blue", size=1.5)+geom_vline(xintercept = 10, color = "orange", size=1.5)
+
+table(tvdata$IMDb)
+table(tvdata$Rotten.Tomatoes)
 
 ```
 
 ```{r}
 
-ggplot(data=tvdata, aes(x=IMDb, y=Rotten.Tomatoes, col=Age)) + geom_point() + ggtitle("Comparison of Rating Systems")
+ggplot(data=tvdata, aes(x=IMDb, y=Rotten.Tomatoes, col=Age)) + geom_point() + ggtitle("Comparison of Rating Systems")+ scale_color_manual(breaks=c("7+","13+","16+","18+","all",NA),values=c("red", "blue", "green","orange","black","grey"))
+
+mean(subset(tvdata,Age=="all")$IMDb,na.rm = TRUE)
+mean(subset(tvdata,Age=="all")$Rotten.Tomatoes,na.rm = TRUE)
+mean(subset(tvdata,is.na(Age))$IMDb,na.rm = TRUE)
+mean(subset(tvdata,is.na(Age))$Rotten.Tomatoes,na.rm = TRUE)
 
 ```
+
 
 ```{r}
 
@@ -88,6 +103,23 @@ plot.data <- rbind(netflixtv, hulutv, primetv, disneytv)
 ggplot(plot.data, aes(x=Platform, y=IMDb)) + geom_boxplot(outlier.shape = NA)+
   scale_y_continuous(limits = (3:10))
 ggplot(plot.data, aes(x=Platform, y=Rotten.Tomatoes)) + geom_boxplot(outlier.shape = NA)
+
+```
+
+```{r}
+
+ggplot(disneytv, aes(x=Age)) + geom_bar()+ggtitle("Targeted Age Groups (Disney)")+scale_x_discrete(limits=c("7+", "13+", "16+","18+","all","NA"))
+
+ggplot(hulutv, aes(x=Age)) + geom_bar()+ggtitle("Targeted Age Groups (Hulu)")+scale_x_discrete(limits=c("7+", "13+", "16+","18+","all","NA"))
+
+ggplot(netflixtv, aes(x=Age)) + geom_bar()+ggtitle("Targeted Age Groups (Netflix)")+scale_x_discrete(limits=c("7+", "13+", "16+","18+","all","NA"))
+
+ggplot(primetv, aes(x=Age)) + geom_bar()+ggtitle("Targeted Age Groups (Prime)")+scale_x_discrete(limits=c("7+", "13+", "16+","18+","all","NA"))
+
+nrow(subset(disneytv, Age=="all"))
+nrow(subset(hulutv, Age=="16+"))
+nrow(subset(netflixtv, Age=="18+"))
+nrow(subset(primetv, Age=="7+"))
 
 ```
 
