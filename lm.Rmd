@@ -1,0 +1,148 @@
+---
+title: "Group 1 Midterm"
+author: "Evelyn Campo, Xiao Qi, Nusrat Prithee"
+# date: "today"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    code_folding: hide
+    number_sections: false
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+
+```{r init, include=FALSE}
+library(ezids)
+library(ggplot2)
+knitr::opts_chunk$set(warning = F, results = "hide", message = F)
+options(scientific=T, digits = 3)
+```
+
+
+```{r}
+tvdata <- data.frame(read.csv("tv_shows.csv"))
+str(tvdata)
+```
+This step is to clear data, change some string data to number and some to factor.
+```{r}
+tvdata$IMDb<-gsub("/10","",as.character(tvdata$IMDb))
+tvdata$Rotten.Tomatoes<-gsub("/100","",as.character(tvdata$Rotten.Tomatoes))
+tvdata$IMDb<-as.double(tvdata$IMDb)
+tvdata$Rotten.Tomatoes<-as.double(tvdata$Rotten.Tomatoes)
+
+# total_plt <- tvdata$Netflix + tvdata$Hulu + tvdata$Prime.Video + tvdata$Disney.
+# tvdata <- cbind(tvdata, total_plt)
+
+tvdata$Netflix = factor(tvdata$Netflix)
+tvdata$Hulu = factor(tvdata$Hulu)
+tvdata$Prime.Video = factor(tvdata$Prime.Video)
+tvdata$Disney. = factor(tvdata$Disney.)
+tvdata$Age = factor(tvdata$Age)
+
+str(tvdata)
+#View(tvdata)
+```
+To analyze the score relationships between two platforms, we need to drop the rows that have no IMDb scores and no Rotten.Tomatoes scores.
+Meanwhile, the column of X, ID, Title and Type are useless, so we also drop these columns.
+```{r}
+tvdata_rank <- subset(tvdata, (!is.na(IMDb)) & (!is.na(Rotten.Tomatoes)))
+tvdata_rank = subset(tvdata_rank, select = -c(X, ID, Title, Type))
+str(tvdata_rank)
+
+hist(tvdata_rank$IMDb,breaks=20)
+hist(tvdata_rank$Rotten.Tomatoes,breaks=20)
+```
+
+Make a pairs() plot with all the variables (quantitative and qualitative).
+```{r}
+loadPkg("lattice") # lattice and ggplot2 combined allow us to use the "pairs" function below 
+pairs(tvdata_rank)
+```
+
+Make a corrplot() with only the numerical variables.
+```{r}
+loadPkg("corrplot")
+tvdata_rank_num = subset(tvdata_rank, select = -c(Age, Netflix, Hulu, Prime.Video, Disney.))
+
+cor_tvdata = cor(tvdata_rank_num)
+
+corrplot(cor_tvdata, method = "number", type="upper")
+# corrplot.mixed(cor_tvdata)
+```
+
+By using the variable Rotten.Tomatoes only, build a linear model with 1 independent variable to predict the IMDb.
+```{r}
+model1 = lm(IMDb ~ Rotten.Tomatoes, data=tvdata_rank)
+sum_md1 = summary(model1) # also for later use on inline codes
+sum_md1
+```
+From the results above, We can find there is a weak correlation between IMDb and Rotten.Tomatoes. And the correlation coefficient is 0.213.
+
+Because there is only a weak correlation, I try to add the other variables into the model. Below is the result:
+```{r}
+model2 = lm(IMDb ~ ., data=tvdata_rank)
+sum_md2 = summary(model2) # also for later use on inline codes
+sum_md2
+```
+We can find that the adjusted correlation coefficient increases, but some variables are not significant, so try to drop it.
+
+
+```{r}
+table(tvdata_rank$Age)
+```
+The result is that for age13+, there are only 9 shows. Too little sample cause a large p-value. So we need to drop the factor of Age13+. We also drop Netflix, Prime.Video, Disney., because the p-values of these variables are not significant.
+```{r}
+tvdata_rank_no13 <- subset(tvdata_rank, Age!="13+")
+tvdata_rank_no13 = subset(tvdata_rank_no13, select = -c(Netflix, Prime.Video, Disney.))
+```
+
+And then me make the third model as follow.
+```{r}
+model3 = lm(IMDb ~ ., data=tvdata_rank_no13)
+sum_md3 = summary(model3) # also for later use on inline codes
+sum_md3
+```
+We can find that all variables are significant and the adjusted r-squared is 0.246, much higher than the simple linear regression.
+
+```{r}
+vif_md3 = faraway::vif(model3)
+vif_md3
+```
+
+```{r}
+# aovresult <- anova(model1, model2, model3)
+# aovresult
+```
+This is an Error because "models were not all fitted to the same size of dataset", so we redo the simple linear regression using tvdata_rank_no13 as model4.
+
+```{r}
+model4 = lm(IMDb ~ Rotten.Tomatoes, data=tvdata_rank_no13)
+sum_md4 = summary(model4) # also for later use on inline codes
+sum_md4
+```
+
+The concepts above can be extended naturally to models with interactions between numeric and factor variables.
+```{r}
+model5 = lm(IMDb ~ . + Rotten.Tomatoes:Age, data=tvdata_rank_no13)
+sum_md5 = summary(model5) # also for later use on inline codes
+sum_md5
+```
+
+Compared with these three models:
+```{r}
+aovresult <- anova(model4, model3, model5)
+aovresult
+```
+Add one interaction, full model seems quite nice (although it's still a weak correlation).
+
+IMDb = 23.464467 + 
+-0.009186 * Year + 0.046692 * Rotten.Tomatoes + -0.209429 * Hulu
++ (-0.516497 + 0.000526 * Rotten.Tomatoes) * Age7+
++ (0.005813 + -0.007472 * Rotten.Tomatoes) * Age16+ 
++ (-0.453837 + -0.001010 * Rotten.Tomatoes) * Age18+ 
++ (0.609364 + -0.020359 * Rotten.Tomatoes) * Ageall
+
