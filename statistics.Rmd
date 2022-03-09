@@ -1,6 +1,6 @@
 ---
 title: "Group 1 Midterm"
-author: "Evelyn Campo, Xiao Qi, Nusrat Prithee, Roman Kosarzycki"
+author: "Evelyn Campo, Xiao Qi, Nusrat Prithee"
 date: "today"
 # date: "`r Sys.Date()`"
 output:
@@ -30,34 +30,31 @@ tvdata$IMDb<-gsub("/10","",as.character(tvdata$IMDb))
 tvdata$Rotten.Tomatoes<-gsub("/100","",as.character(tvdata$Rotten.Tomatoes))
 tvdata$IMDb<-as.double(tvdata$IMDb)
 tvdata$Rotten.Tomatoes<-as.double(tvdata$Rotten.Tomatoes)
+tvdata$Netflix<-as.factor(tvdata$Netflix)
+tvdata$Hulu<-as.factor(tvdata$Hulu)
+tvdata$Prime.Video<-as.factor(tvdata$Prime.Video)
+tvdata$Disney.<-as.factor(tvdata$Disney.)
 str(tvdata)
 View(tvdata)
 
 
 ```
 
-
+What are the most targeted age groups for the TV shows by Netflix, Hulu, Prime, disney
+Video? 
 
 ```{r}
 
 print("Age:")
 table(tvdata$Age)
-print("Netflix:")
-table(tvdata$Netflix)
-print("Hulu:")
-table(tvdata$Hulu)
-print("Prime Video:")
-table(tvdata$Prime.Video)
-print("Disney:")
-table(tvdata$Disney.)
 
 ```
+ people who are 16 and older are the most targeted age groups for the tv shows among the all steamming platfrom.
 
-```{r}
-```
 .Which year published the highest number of TV shows? 
 ```{r}
-
+print("Year:")
+table(tvdata$Year)
 library(ggplot2)
 ggplot(data=tvdata,aes(x=Year,)) + 
 geom_histogram(col="red", 
@@ -66,9 +63,10 @@ geom_histogram(col="red",
 labs(title="Year histogram") +
 labs(x="Year", y="frequency")
 
-
 ```
+Normality check of Variables
 
+the highest number of TV shows published in 2017 where 2018 is in the second highest.And the histogram is right skewrd which indicates that video publication is raising with the time change.
 ```{r}
 
 netflixtv <- subset(tvdata, Netflix==1)
@@ -78,17 +76,26 @@ disneytv <- subset(tvdata, Disney.==1)
 
 ```
 
+Which streaming platform has the highest average rating (according to Rotten 
+Tomatoes and IMDb)? 
 
 ```{r q06}
 net_rating<-t.test(netflixtv$IMDb,netflixtv$Rotten.Tomatoes)
+net_rating
 hulu_rating<-t.test(hulutv$IMDb,hulutv$Rotten.Tomatoes)
+hulu_rating
 prime_rating<-t.test(primetv$IMDb,primetv$Rotten.Tomatoes)
-disney_rating<-t.test(disneytv$IMDb,disneytv$Netflix)
-
+prime_rating
+disney_rating<-t.test(disneytv$IMDb,disneytv$Rotten.Tomatoes)
+disney_rating
 ```
-
-
+ Prime Videos has the highest average Imdb rating  which is 7.152538. Also, Netflix has the highest average RTT rating  which is 53.559107
+ 
+Normality check for the variable IMDb and Rotten.Tomatoes
 ```{r}
+shapiro.test(netflixtv$IMDb)
+shapiro.test(netflixtv$Rotten.Tomatoes)
+
 library(ggplot2)
 ggplot(data=netflixtv,aes(x=IMDb,)) + 
 geom_histogram(col="red", 
@@ -104,6 +111,14 @@ geom_histogram(col="red",
 labs(title="Netflix Rotten.Tomatoes histogram") +
 labs(x="Rotten.Tomatoes", y="frequency")
 
+
+```
+Here p value for IMDb and Rotten.Tomatoes is less than 0.05 for Netflix. That's mean these are not normally distributed. Histogram of IMDb is right-skewed also Histogram of Rotten.Tomatoes is slightly left-skewed.
+```{r}
+shapiro.test(hulutv$IMDb)
+shapiro.test(hulutv$Rotten.Tomatoes)
+
+library(ggplot2)
 ggplot(data=hulutv,aes(x=IMDb,)) + 
 geom_histogram(col="red", 
                fill="green", 
@@ -118,7 +133,12 @@ geom_histogram(col="red",
 labs(title="hulu Rotten.Tomatoes histogram") +
 labs(x="Rotten.Tomatoes", y="frequency")
 
-
+```
+Here p value for IMDb and Rotten.Tomatoes is less than 0.05 for Hulu. That's mean these are not normally distributed. Histogram of IMDb is right-skewed also Histogram of Rotten.Tomatoes is slightly Bimodal.
+```{r}
+shapiro.test(primetv$IMDb)
+shapiro.test(primetv$Rotten.Tomatoes)
+library(ggplot2)
 ggplot(data=primetv,aes(x=IMDb,)) + 
 geom_histogram(col="red", 
                fill="green", 
@@ -132,28 +152,85 @@ geom_histogram(col="red",
                alpha = .7) + 
 labs(title="prime Rotten.Tomatoes histogram") +
 labs(x="Rotten.Tomatoes", y="frequency")
+
 ```
+Here p value for IMDb and Rotten.Tomatoes is less than 0.05 for Prime Videos. That's mean these are not normally distributed. Histogram of IMDb is right-skewed also Histogram of Rotten.Tomatoes is Randomly distribution.
+
+```{r}
+shapiro.test(disneytv$IMDb)
+shapiro.test(disneytv$Rotten.Tomatoes)
+library(ggplot2)
+ggplot(data=disneytv,aes(x=IMDb,)) + 
+geom_histogram(col="red", 
+               fill="green", 
+               alpha = .7) + 
+labs(title="disney IMDb histogram") +
+labs(x="IMDB", y="frequency")
+
+ggplot(data=disneytv,aes(x=Rotten.Tomatoes,)) + 
+geom_histogram(col="red", 
+               fill="green", 
+               alpha = .7) + 
+labs(title="disney Rotten.Tomatoes histogram") +
+labs(x="Rotten.Tomatoes", y="frequency")
+
+```
+Here p value for IMDb and Rotten.Tomatoes is less than 0.05 for Disney+. That's mean these are not normally distributed. Histogram of IMDb is slightly right-skewed and randomly distributed. also Histogram of Rotten.Tomatoes is slightly left-skewed and randomly distribution.
+
 Test of Independence. To check whether IMDb and RRT is independent.
-```{r}
-contable_IMDb = table(netflixtv$IMDb)
-contable_IMDb
+```{r }
+contable1= table(netflixtv$Age, netflixtv$IMDb)
+contable1
+chitest1 = chisq.test(contable1)
+chitest1
 
-contable_RTT = table(netflixtv$Rotten.Tomatoes)
-contable_RTT
+contable2 = table(netflixtv$Age, netflixtv$Rotten.Tomatoes)
+contable2
+chitest2 = chisq.test(contable2)
+chitest2
 
-
-```
-```{r}
-chitest = chisq.test(contable_IMDb)
-chitest
-chitest$statistic
-chitest$p.value
-chitest$parameter
-
-chitest = chisq.test(contable_RTT)
-chitest
-chitest$statistic
-chitest$p.value
-chitest$parameter
 
 ```
+Here p(0.02316)<0.05 rejects null Hypothesis. That's why IMDb and Rotten.Tomatoes for Netflix  are not independent.
+
+```{r }
+contable3= table(hulutv$Age, hulutv$IMDb)
+contable3
+chitest3 = chisq.test(contable3)
+chitest3
+
+contable4 = table(hulutv$Age, hulutv$Rotten.Tomatoes)
+contable4
+chitest4 = chisq.test(contable4)
+chitest4
+
+```
+Here p<0.05 rejects null Hypothesis. That's why IMDb and Rotten.Tomatoes for Hulu  are not independent.
+
+```{r}
+contable5= table(primetv$Age, primetv$IMDb)
+contable5
+chitest5 = chisq.test(contable5)
+chitest5
+
+contable6 = table(primetv$Age, primetv$Rotten.Tomatoes)
+contable6
+chitest6 = chisq.test(contable6)
+chitest6
+
+```
+Here p<0.05 rejects null Hypothesis. That's why IMDb and Rotten.Tomatoes for prime videos  are not independent.
+
+```{r}
+contable7= table(disneytv$Age, disneytv$IMDb)
+contable7
+chitest7 = chisq.test(contable7)
+chitest7
+
+contable8 = table(disneytv$Age, disneytv$Rotten.Tomatoes)
+contable8
+chitest8= chisq.test(contable8)
+chitest8
+
+```
+Here p<0.05 rejects null Hypothesis. That's why IMDb and Rotten.Tomatoes for Disney  are not independent.
