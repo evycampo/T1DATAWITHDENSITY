@@ -22,23 +22,96 @@ knitr::opts_chunk$set(warning = F, results = "hide", message = F)
 options(scientific=T, digits = 3) 
 ```
 
-
+Importing the Dataset assigning "NA" to all blank cells
 ```{r}
+tvdata <- read.csv("tv_shows.csv", header=T, na.strings=c("","NA")) 
+```
 
-tvdata <- data.frame(read.csv("tv_shows.csv"))
-tvdata$IMDb<-gsub("/10","",as.character(tvdata$IMDb))
-tvdata$Rotten.Tomatoes<-gsub("/100","",as.character(tvdata$Rotten.Tomatoes))
-tvdata$IMDb<-as.double(tvdata$IMDb)
-tvdata$Rotten.Tomatoes<-as.double(tvdata$Rotten.Tomatoes)
-tvdata$Netflix<-as.factor(tvdata$Netflix)
-tvdata$Hulu<-as.factor(tvdata$Hulu)
-tvdata$Prime.Video<-as.factor(tvdata$Prime.Video)
-tvdata$Disney.<-as.factor(tvdata$Disney.)
+
+Cleaning the Dataset
+```{r}
+library(dplyr)
+tvdata$IMDb<-gsub("/10","",as.character(tvdata$IMDb)) #We had to delete the character /10 on every observation 
+tvdata$Rotten.Tomatoes<-gsub("/100","",as.character(tvdata$Rotten.Tomatoes)) #We had to delete the character /100 on every observation 
+tvdata$IMDb<-as.double(tvdata$IMDb) #as.double is a generic function. It is identical to as. numeric
+tvdata$Rotten.Tomatoes<-as.double(tvdata$Rotten.Tomatoes) #as.double is a generic function. It is identical to as. numeric
+tvdata = select(tvdata, -X, -ID, -Type) #This variables aren't of our interest
+
 str(tvdata)
 View(tvdata)
+```
 
+Counting missing values 
+```{r}
+sum(is.na(tvdata)) #Total NA
+mean(is.na(tvdata))
+
+#NA per variables
+sum(is.na(tvdata$Title))
+sum(is.na(tvdata$Year))
+sum(is.na(tvdata$Age))
+sum(is.na(tvdata$IMDb))
+sum(is.na(tvdata$`Rotten Tomatoes`))
+sum(is.na(tvdata$Netflix))
+sum(is.na(tvdata$Hulu))
+sum(is.na(tvdata$`Prime Video`))
+sum(is.na(tvdata$`Disney+`))
 
 ```
+Age has the most missing values in the Dataset, and IMDb is the other variable with NA values.
+
+Streaming platforms into as.factor()
+```{r}
+tv_shows$Netflix <- as.factor(tv_shows$Netflix)  
+tv_shows$Hulu <- as.factor(tv_shows$Hulu)  
+tv_shows$`Prime Video` <- as.factor(tv_shows$`Prime Video`)
+tv_shows$`Disney+` <- as.factor(tv_shows$`Disney+`)
+
+```
+The streaming platforms are categorical. 1 represents if the TV show is found on their platform otherwise 0.
+
+
+Bar chart for age
+```{r}
+library(ggplot2)
+ggplot(data = na.omit(tvdata), aes(Age)) + 
+  geom_bar(col="red", 
+                 fill="blue", 
+                 alpha = .7) + # opacity
+  labs(title="Bar chart target age of viewers") +
+  labs(x="Target age of viewers ", y="Frequency")
+#We needed to make blank observations (missing values) into NA so that they don't get counted on the graphs
+```
+
+Histogram for year 
+```{r}
+library(ggplot2)
+ggplot(data=tvdata, aes(Year)) + 
+  geom_histogram(bins = 30,
+                 col="red", 
+           fill="blue", 
+           alpha = .7) + # opacity
+  labs(title="Histogram year during which 
+       a tv show was produced") +
+  labs(x="Year tv show was produced", y="Frequency")
+```
+
+Just undertanding a lilttle more about streaming platform variables and age
+```{r}
+
+print("Age:")
+table(tvdata$Age)
+print("Netflix:")
+table(tvdata$Netflix)
+print("Hulu:")
+table(tvdata$Hulu)
+print("Prime Video:")
+table(tvdata$Prime.Video)
+print("Disney:")
+table(tvdata$Disney.)
+
+```
+
 
 What are the most targeted age groups for the TV shows by Netflix, Hulu, Prime, disney
 Video? 
@@ -49,20 +122,22 @@ print("Age:")
 table(tvdata$Age)
 
 ```
- people who are 16 and older are the most targeted age groups for the tv shows among the all steamming platfrom.
+people who are 16 and older are the most targeted age groups for the tv shows among the all steamming platfrom.
 
 .Which year published the highest number of TV shows? 
 ```{r}
 print("Year:")
 table(tvdata$Year)
 library(ggplot2)
-ggplot(data=tvdata,aes(x=Year,)) + 
-geom_histogram(col="red", 
-               fill="green", 
-               alpha = .7) + 
-labs(title="Year histogram") +
-labs(x="Year", y="frequency")
-
+ggplot(data=tvdata, aes(Year)) + 
+  geom_histogram(bins = 30,
+                 col="red", 
+           fill="blue", 
+           alpha = .7) + # opacity
+  labs(title="Histogram year during which 
+       a tv show was produced") +
+  labs(x="Year tv show was produced", y="Frequency")
+#I am replacing the prevous code with the graphs from above to keep the same formatting
 ```
 Normality check of Variables
 
