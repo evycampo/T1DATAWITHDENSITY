@@ -120,7 +120,16 @@ Video?
 
 print("Age:")
 table(tvdata$Age)
+prop.table(table(tvdata$Age))
 
+ggplot(data = na.omit(tvdata), aes(Age)) + 
+  geom_bar(col="red", 
+                 fill="blue", 
+                 alpha = .7) + # opacity
+  labs(title="Most targeted age group for all platforms: 16+ ") +
+  labs(x="Target age of viewers ", y="Frequency")
+
+#I am taking this graph from above since it works for this question
 ```
 people who are 16 and older are the most targeted age groups for the tv shows among the all steamming platfrom.
 
@@ -134,14 +143,14 @@ ggplot(data=tvdata, aes(Year)) +
                  col="red", 
            fill="blue", 
            alpha = .7) + # opacity
-  labs(title="Histogram year during which 
-       a tv show was produced") +
-  labs(x="Year tv show was produced", y="Frequency")
+  labs(title="Year during which the highest number of shows were published: 2017") +
+  labs(x="Year tv show was published", y="Frequency")
 #I am replacing the prevous code with the graphs from above to keep the same formatting
 ```
+The highest number of TV shows were published in 2017 (685) and 2018 (562).And the histogram is right skewed which indicates that video publication is raising while time goes forward.
+
 Normality check of Variables
 
-the highest number of TV shows published in 2017 where 2018 is in the second highest.And the histogram is right skewrd which indicates that video publication is raising with the time change.
 ```{r}
 
 netflixtv <- subset(tvdata, Netflix==1)
