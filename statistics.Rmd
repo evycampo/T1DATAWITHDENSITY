@@ -91,7 +91,7 @@ disney_rating
 ```
  Prime Videos has the highest average Imdb rating  which is 7.152538. Also, Netflix has the highest average RTT rating  which is 53.559107
  
-Normality check of the variable IMDb and Rotten.Tomatoes
+Normality check for the variable IMDb and Rotten.Tomatoes
 ```{r}
 shapiro.test(netflixtv$IMDb)
 shapiro.test(netflixtv$Rotten.Tomatoes)
