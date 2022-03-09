@@ -100,9 +100,19 @@ primetv$Platform <- "Prime"
 disneytv <- subset(tvdata, Disney.==1)
 disneytv$Platform <- "Disney"
 plot.data <- rbind(netflixtv, hulutv, primetv, disneytv)
-ggplot(plot.data, aes(x=Platform, y=IMDb)) + geom_boxplot(outlier.shape = NA)+
-  scale_y_continuous(limits = (3:10))
-ggplot(plot.data, aes(x=Platform, y=Rotten.Tomatoes)) + geom_boxplot(outlier.shape = NA)
+
+ggplot(plot.data, aes(x=Platform, y=IMDb, fill=Platform)) + geom_boxplot(outlier.shape = NA)+ggtitle("IMDb Rating for Platforms")+ylim(4,10)
+
+ggplot(plot.data, aes(x=Platform, y=Rotten.Tomatoes, fill=Platform)) + geom_boxplot(outlier.shape = NA)+ggtitle("Rotten Tomatoes Rating for Platforms")
+
+mean(disneytv$IMDb,na.rm=T)
+mean(disneytv$Rotten.Tomatoes,na.rm=T)
+mean(hulutv$IMDb,na.rm=T)
+mean(hulutv$Rotten.Tomatoes,na.rm=T)
+mean(netflixtv$IMDb,na.rm=T)
+mean(netflixtv$Rotten.Tomatoes,na.rm=T)
+mean(primetv$IMDb,na.rm=T)
+mean(primetv$Rotten.Tomatoes,na.rm=T)
 
 ```
 
@@ -116,10 +126,10 @@ ggplot(netflixtv, aes(x=Age)) + geom_bar()+ggtitle("Targeted Age Groups (Netflix
 
 ggplot(primetv, aes(x=Age)) + geom_bar()+ggtitle("Targeted Age Groups (Prime)")+scale_x_discrete(limits=c("7+", "13+", "16+","18+","all","NA"))
 
-nrow(subset(disneytv, Age=="all"))
-nrow(subset(hulutv, Age=="16+"))
-nrow(subset(netflixtv, Age=="18+"))
-nrow(subset(primetv, Age=="7+"))
+nrow(subset(disneytv, Age=="all"))/nrow(disneytv)
+nrow(subset(hulutv, Age=="16+"))/nrow(hulutv)
+nrow(subset(netflixtv, Age=="18+"))/nrow(netflixtv)
+nrow(subset(primetv, Age=="7+"))/nrow(primetv)
 
 ```
 
