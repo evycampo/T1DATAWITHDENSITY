@@ -1,6 +1,6 @@
 ---
 title: "Group 1 Midterm"
-author: "Evelyn Campo, Xiao Qi, Nusrat Prithee"
+author: "Evelyn Campo, Xiao Qi, Nusrat Prithee, Roman Kosarzycki"
 # date: "today"
 date: "`r Sys.Date()`"
 output:
@@ -75,11 +75,16 @@ corrplot(cor_tvdata, method = "number", type="upper")
 ```
 
 By using the variable Rotten.Tomatoes only, build a linear model with 1 independent variable to predict the IMDb.
-```{r}
+```{r results='markup'}
 model1 = lm(IMDb ~ Rotten.Tomatoes, data=tvdata_rank)
 sum_md1 = summary(model1) # also for later use on inline codes
 sum_md1
+
+xkabledply(model1, title = paste("Model (num):", format(formula(model1)) ) )
+# xkablevif(model1)
 ```
+
+
 From the results above, We can find there is a weak correlation between IMDb and Rotten.Tomatoes. And the correlation coefficient is 0.213.
 
 Because there is only a weak correlation, I try to add the other variables into the model. Below is the result:
@@ -108,9 +113,12 @@ sum_md3
 ```
 We can find that all variables are significant and the adjusted r-squared is 0.246, much higher than the simple linear regression.
 
-```{r}
-vif_md3 = faraway::vif(model3)
-vif_md3
+```{r results='markup'}
+#vif_md3 = faraway::vif(model3)
+#vif_md3
+
+xkabledply(model3, title = paste("Model (num):", format(formula(model3)) ) )
+xkablevif(model3)
 ```
 
 ```{r}
@@ -119,23 +127,30 @@ vif_md3
 ```
 This is an Error because "models were not all fitted to the same size of dataset", so we redo the simple linear regression using tvdata_rank_no13 as model4.
 
-```{r}
+```{r results='markup'}
 model4 = lm(IMDb ~ Rotten.Tomatoes, data=tvdata_rank_no13)
 sum_md4 = summary(model4) # also for later use on inline codes
 sum_md4
+
+xkabledply(model4, title = paste("Model (num):", format(formula(model4)) ) )
+# xkablevif(model4)
 ```
 
 The concepts above can be extended naturally to models with interactions between numeric and factor variables.
-```{r}
+```{r results='markup'}
 model5 = lm(IMDb ~ . + Rotten.Tomatoes:Age, data=tvdata_rank_no13)
 sum_md5 = summary(model5) # also for later use on inline codes
 sum_md5
+
+xkabledply(model5, title = paste("Model (num):", format(formula(model5)) ) )
+# xkablevif(model5)
 ```
 
 Compared with these three models:
-```{r}
-aovresult <- anova(model4, model3, model5)
-aovresult
+```{r results='markup'}
+aovresult1 <- anova(model4, model3, model5)
+str(aovresult1)
+xkabledply(aovresult1, title = "ANOVA comparison between the models")
 ```
 Add one interaction, full model seems quite nice (although it's still a weak correlation).
 
