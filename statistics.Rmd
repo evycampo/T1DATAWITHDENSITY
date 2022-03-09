@@ -66,7 +66,7 @@ labs(x="Year", y="frequency")
 ```
 Normality check of Variables
 
-the highest number of TV shows published in 2017 where 2018 is in the second highest.
+the highest number of TV shows published in 2017 where 2018 is in the second highest.And the histogram is right skewrd which indicates that video publication is raising with the time change.
 ```{r}
 
 netflixtv <- subset(tvdata, Netflix==1)
