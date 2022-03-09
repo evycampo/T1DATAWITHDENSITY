@@ -109,7 +109,7 @@ labs(x="Rotten.Tomatoes", y="frequency")
 
 
 ```
-Here p value for IMDb and Rotten.Tomatoes is less than 0.05. That's mean these are not normally distributed. Histogram of IMDb is right-skewed also Histogram of Rotten.Tomatoes is slightly left-skewed.
+Here p value for IMDb and Rotten.Tomatoes is less than 0.05 for Netflix. That's mean these are not normally distributed. Histogram of IMDb is right-skewed also Histogram of Rotten.Tomatoes is slightly left-skewed.
 ```{r}
 shapiro.test(hulutv$IMDb)
 shapiro.test(hulutv$Rotten.Tomatoes)
@@ -130,7 +130,7 @@ labs(title="hulu Rotten.Tomatoes histogram") +
 labs(x="Rotten.Tomatoes", y="frequency")
 
 ```
-Here p value for IMDb and Rotten.Tomatoes is less than 0.05. That's mean these are not normally distributed. Histogram of IMDb is right-skewed also Histogram of Rotten.Tomatoes is slightly Bimodal.
+Here p value for IMDb and Rotten.Tomatoes is less than 0.05 for Hulu. That's mean these are not normally distributed. Histogram of IMDb is right-skewed also Histogram of Rotten.Tomatoes is slightly Bimodal.
 ```{r}
 shapiro.test(primetv$IMDb)
 shapiro.test(primetv$Rotten.Tomatoes)
@@ -150,7 +150,7 @@ labs(title="prime Rotten.Tomatoes histogram") +
 labs(x="Rotten.Tomatoes", y="frequency")
 
 ```
-Here p value for IMDb and Rotten.Tomatoes is less than 0.05. That's mean these are not normally distributed. Histogram of IMDb is right-skewed also Histogram of Rotten.Tomatoes is Randomly distribution.
+Here p value for IMDb and Rotten.Tomatoes is less than 0.05 for Prime Videos. That's mean these are not normally distributed. Histogram of IMDb is right-skewed also Histogram of Rotten.Tomatoes is Randomly distribution.
 
 ```{r}
 shapiro.test(disneytv$IMDb)
@@ -171,4 +171,4 @@ labs(title="disney Rotten.Tomatoes histogram") +
 labs(x="Rotten.Tomatoes", y="frequency")
 
 ```
-Here p value for IMDb and Rotten.Tomatoes is less than 0.05. That's mean these are not normally distributed. Histogram of IMDb is slightly right-skewed and randomly distributed. also Histogram of Rotten.Tomatoes is slightly left-skewed and randomly distribution.
+Here p value for IMDb and Rotten.Tomatoes is less than 0.05 for Disney+. That's mean these are not normally distributed. Histogram of IMDb is slightly right-skewed and randomly distributed. also Histogram of Rotten.Tomatoes is slightly left-skewed and randomly distribution.
