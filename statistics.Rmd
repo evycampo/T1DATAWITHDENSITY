@@ -176,3 +176,61 @@ labs(x="Rotten.Tomatoes", y="frequency")
 
 ```
 Here p value for IMDb and Rotten.Tomatoes is less than 0.05 for Disney+. That's mean these are not normally distributed. Histogram of IMDb is slightly right-skewed and randomly distributed. also Histogram of Rotten.Tomatoes is slightly left-skewed and randomly distribution.
+
+Test of Independence. To check whether IMDb and RRT is independent.
+```{r }
+contable1= table(netflixtv$Age, netflixtv$IMDb)
+contable1
+chitest1 = chisq.test(contable1)
+chitest1
+
+contable2 = table(netflixtv$Age, netflixtv$Rotten.Tomatoes)
+contable2
+chitest2 = chisq.test(contable2)
+chitest2
+
+
+```
+Here p(0.02316)<0.05 rejects null Hypothesis. That's why IMDb and Rotten.Tomatoes for Netflix  are not independent.
+
+```{r }
+contable3= table(hulutv$Age, hulutv$IMDb)
+contable3
+chitest3 = chisq.test(contable3)
+chitest3
+
+contable4 = table(hulutv$Age, hulutv$Rotten.Tomatoes)
+contable4
+chitest4 = chisq.test(contable4)
+chitest4
+
+```
+Here p<0.05 rejects null Hypothesis. That's why IMDb and Rotten.Tomatoes for Hulu  are not independent.
+
+```{r}
+contable5= table(primetv$Age, primetv$IMDb)
+contable5
+chitest5 = chisq.test(contable5)
+chitest5
+
+contable6 = table(primetv$Age, primetv$Rotten.Tomatoes)
+contable6
+chitest6 = chisq.test(contable6)
+chitest6
+
+```
+Here p<0.05 rejects null Hypothesis. That's why IMDb and Rotten.Tomatoes for prime videos  are not independent.
+
+```{r}
+contable7= table(disneytv$Age, disneytv$IMDb)
+contable7
+chitest7 = chisq.test(contable7)
+chitest7
+
+contable8 = table(disneytv$Age, disneytv$Rotten.Tomatoes)
+contable8
+chitest8= chisq.test(contable8)
+chitest8
+
+```
+Here p<0.05 rejects null Hypothesis. That's why IMDb and Rotten.Tomatoes for Disney  are not independent.
