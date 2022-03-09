@@ -77,9 +77,29 @@ hist(tvdata$Year, breaks=100)
 ```{r}
 
 netflixtv <- subset(tvdata, Netflix==1)
+netflixtv$Platform <- "Netflix"
 hulutv <- subset(tvdata, Hulu==1)
+hulutv$Platform <- "Hulu"
 primetv <- subset(tvdata, Prime.Video==1)
+primetv$Platform <- "Prime"
 disneytv <- subset(tvdata, Disney.==1)
+disneytv$Platform <- "Disney"
+plot.data <- rbind(netflixtv, hulutv, primetv, disneytv)
+ggplot(plot.data, aes(x=Platform, y=IMDb)) + geom_boxplot(outlier.shape = NA)+
+  scale_y_continuous(limits = (3:10))
+ggplot(plot.data, aes(x=Platform, y=Rotten.Tomatoes)) + geom_boxplot(outlier.shape = NA)
+
+```
+
+
+```{r}
+
+testfit1 <- lm(IMDb ~ Rotten.Tomatoes*Platform,data=plot.data)
+summary(testfit1)
+testfit2 <- lm(IMDb ~ Rotten.Tomatoes+Platform,data=plot.data)
+summary(testfit2)
+testfit3 <- lm(IMDb ~ Rotten.Tomatoes,data=plot.data)
+summary(testfit3)
 
 ```
 
