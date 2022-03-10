@@ -1,6 +1,6 @@
 ---
 title: "Group 1 Midterm"
-author: "Evelyn Campo, Xiao Qi, Nusrat Prithee"
+author: "Evelyn Campo, Xiao Qi, Nusrat Prithee, Roman"
 date: "today"
 # date: "`r Sys.Date()`"
 output:
