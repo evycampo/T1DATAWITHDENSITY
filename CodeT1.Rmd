@@ -1,7 +1,7 @@
 ---
 title: "Group 1 Midterm"
-author: "Evelyn Campo, Xiao Qi, Nusrat Prithee, Roman"
-date: "today"
+author: "Evelyn Campo, Xiao Qi, Nusrat Prithee, Roman Kosarzycki"
+date: "March 9, 2022"
 # date: "`r Sys.Date()`"
 output:
   html_document:
