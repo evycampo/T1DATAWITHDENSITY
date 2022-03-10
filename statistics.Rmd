@@ -18,6 +18,7 @@ output:
 ```{r init, include=FALSE}
 library(ezids)
 library(ggplot2)
+library(dplyr)
 knitr::opts_chunk$set(warning = F, results = "hide", message = F)
 options(scientific=T, digits = 3) 
 ```
@@ -30,7 +31,6 @@ tvdata <- read.csv("tv_shows.csv", header=T, na.strings=c("","NA"))
 
 Cleaning the Dataset
 ```{r}
-library(dplyr)
 tvdata$IMDb<-gsub("/10","",as.character(tvdata$IMDb)) #We had to delete the character /10 on every observation 
 tvdata$Rotten.Tomatoes<-gsub("/100","",as.character(tvdata$Rotten.Tomatoes)) #We had to delete the character /100 on every observation 
 tvdata$IMDb<-as.double(tvdata$IMDb) #as.double is a generic function. It is identical to as. numeric
@@ -62,39 +62,14 @@ Age has the most missing values in the Dataset, and IMDb is the other variable w
 
 Streaming platforms into as.factor()
 ```{r}
-tv_shows$Netflix <- as.factor(tv_shows$Netflix)  
-tv_shows$Hulu <- as.factor(tv_shows$Hulu)  
-tv_shows$`Prime Video` <- as.factor(tv_shows$`Prime Video`)
-tv_shows$`Disney+` <- as.factor(tv_shows$`Disney+`)
+tvdata$Netflix <- as.factor(tvdata$Netflix)  
+tvdata$Hulu <- as.factor(tvdata$Hulu)  
+tvdata$Prime.Video <- as.factor(tvdata$Prime.Video)
+tvdata$Disney. <- as.factor(tvdata$Disney.)
 
 ```
 The streaming platforms are categorical. 1 represents if the TV show is found on their platform otherwise 0.
 
-
-Bar chart for age
-```{r}
-library(ggplot2)
-ggplot(data = na.omit(tvdata), aes(Age)) + 
-  geom_bar(col="red", 
-                 fill="blue", 
-                 alpha = .7) + # opacity
-  labs(title="Bar chart target age of viewers") +
-  labs(x="Target age of viewers ", y="Frequency")
-#We needed to make blank observations (missing values) into NA so that they don't get counted on the graphs
-```
-
-Histogram for year 
-```{r}
-library(ggplot2)
-ggplot(data=tvdata, aes(Year)) + 
-  geom_histogram(bins = 30,
-                 col="red", 
-           fill="blue", 
-           alpha = .7) + # opacity
-  labs(title="Histogram year during which 
-       a tv show was produced") +
-  labs(x="Year tv show was produced", y="Frequency")
-```
 
 Just undertanding a lilttle more about streaming platform variables and age
 ```{r}
@@ -260,7 +235,49 @@ labs(x="Rotten.Tomatoes", y="frequency")
 
 ```
 Here p value for IMDb and Rotten.Tomatoes is less than 0.05 for Disney+. That's mean these are not normally distributed. Histogram of IMDb is slightly right-skewed and randomly distributed. also Histogram of Rotten.Tomatoes is slightly left-skewed and randomly distribution.
+----------------
+```{r}
+hist(tvdata$IMDb,breaks=20)
+hist(tvdata$Rotten.Tomatoes,breaks=20)
 
+```
+
+```{r}
+
+ggplot(data=tvdata, aes(x=IMDb, y=Rotten.Tomatoes, col=Age)) + geom_point() + ggtitle("Comparison of Rating Systems")
+
+```
+
+
+```{r}
+
+netflixtv <- subset(tvdata, Netflix==1)
+netflixtv$Platform <- "Netflix"
+hulutv <- subset(tvdata, Hulu==1)
+hulutv$Platform <- "Hulu"
+primetv <- subset(tvdata, Prime.Video==1)
+primetv$Platform <- "Prime"
+disneytv <- subset(tvdata, Disney.==1)
+disneytv$Platform <- "Disney"
+plot.data <- rbind(netflixtv, hulutv, primetv, disneytv)
+ggplot(plot.data, aes(x=Platform, y=IMDb)) + geom_boxplot(outlier.shape = NA)+
+  scale_y_continuous(limits = (3:10))
+ggplot(plot.data, aes(x=Platform, y=Rotten.Tomatoes)) + geom_boxplot(outlier.shape = NA)
+
+```
+
+
+```{r}
+
+testfit1 <- lm(IMDb ~ Rotten.Tomatoes*Platform,data=plot.data)
+summary(testfit1)
+testfit2 <- lm(IMDb ~ Rotten.Tomatoes+Platform,data=plot.data)
+summary(testfit2)
+testfit3 <- lm(IMDb ~ Rotten.Tomatoes,data=plot.data)
+summary(testfit3)
+
+```
+---------------------------
 Test of Independence. To check whether IMDb and RRT is independent.
 ```{r }
 contable1= table(netflixtv$Age, netflixtv$IMDb)
@@ -318,3 +335,125 @@ chitest8
 
 ```
 Here p<0.05 rejects null Hypothesis. That's why IMDb and Rotten.Tomatoes for Disney  are not independent.
+
+This step is to clear data, change some string data to number and some to factor.
+```{r}
+tvdata1 <- read.csv("tv_shows.csv", header=T, na.strings=c("","NA")) 
+tvdata1$IMDb<-gsub("/10","",as.character(tvdata1$IMDb))
+tvdata1$Rotten.Tomatoes<-gsub("/100","",as.character(tvdata1$Rotten.Tomatoes))
+tvdata1$IMDb<-as.double(tvdata1$IMDb)
+tvdata1$Rotten.Tomatoes<-as.double(tvdata1$Rotten.Tomatoes)
+
+# total_plt <- tvdata$Netflix + tvdata$Hulu + tvdata$Prime.Video + tvdata$Disney.
+# tvdata <- cbind(tvdata, total_plt)
+
+tvdata1$Netflix = factor(tvdata1$Netflix)
+tvdata1$Hulu = factor(tvdata1$Hulu)
+tvdata1$Prime.Video = factor(tvdata1$Prime.Video)
+tvdata1$Disney. = factor(tvdata1$Disney.)
+tvdata1$Age = factor(tvdata1$Age)
+
+str(tvdata1)
+#View(tvdata)
+```
+To analyze the score relationships between two platforms, we need to drop the rows that have no IMDb scores and no Rotten.Tomatoes scores.
+Meanwhile, the column of X, ID, Title and Type are useless, so we also drop these columns.
+```{r}
+tvdata_rank = subset(tvdata1, (!is.na(IMDb)) & (!is.na(Rotten.Tomatoes)))
+#tvdata_rank = subset(tvdata_rank, select = -c(X, ID, Title, Type))
+#str(tvdata_rank)
+# We've already done the above code 
+hist(tvdata_rank$IMDb,breaks=20)
+hist(tvdata_rank$Rotten.Tomatoes,breaks=20)
+```
+
+Make a pairs() plot with all the variables (quantitative and qualitative).
+```{r}
+loadPkg("lattice") # lattice and ggplot2 combined allow us to use the "pairs" function below 
+pairs(tvdata_rank)
+```
+
+Make a corrplot() with only the numerical variables.
+```{r}
+loadPkg("corrplot")
+tvdata_rank_num = subset(tvdata_rank, select = -c(Age, Netflix, Hulu, Prime.Video, Disney.))
+
+cor_tvdata = cor(tvdata_rank_num)
+
+corrplot(cor_tvdata, method = "number", type="upper")
+# corrplot.mixed(cor_tvdata)
+```
+
+By using the variable Rotten.Tomatoes only, build a linear model with 1 independent variable to predict the IMDb.
+```{r}
+model1 = lm(IMDb ~ Rotten.Tomatoes, data=tvdata_rank)
+sum_md1 = summary(model1) # also for later use on inline codes
+sum_md1
+```
+From the results above, We can find there is a weak correlation between IMDb and Rotten.Tomatoes. And the correlation coefficient is 0.213.
+
+Because there is only a weak correlation, I try to add the other variables into the model. Below is the result:
+```{r}
+model2 = lm(IMDb ~ ., data=tvdata_rank)
+sum_md2 = summary(model2) # also for later use on inline codes
+sum_md2
+```
+We can find that the adjusted correlation coefficient increases, but some variables are not significant, so try to drop it.
+
+
+```{r}
+table(tvdata_rank$Age)
+```
+The result is that for age13+, there are only 9 shows. Too little sample cause a large p-value. So we need to drop the factor of Age13+. We also drop Netflix, Prime.Video, Disney., because the p-values of these variables are not significant.
+```{r}
+tvdata_rank_no13 <- subset(tvdata_rank, Age!="13+")
+tvdata_rank_no13 = subset(tvdata_rank_no13, select = -c(Netflix, Prime.Video, Disney.))
+```
+
+And then me make the third model as follow.
+```{r}
+model3 = lm(IMDb ~ ., data=tvdata_rank_no13)
+sum_md3 = summary(model3) # also for later use on inline codes
+sum_md3
+```
+We can find that all variables are significant and the adjusted r-squared is 0.246, much higher than the simple linear regression.
+
+```{r}
+vif_md3 = faraway::vif(model3)
+vif_md3
+```
+
+```{r}
+# aovresult <- anova(model1, model2, model3)
+# aovresult
+```
+This is an Error because "models were not all fitted to the same size of dataset", so we redo the simple linear regression using tvdata_rank_no13 as model4.
+
+```{r}
+model4 = lm(IMDb ~ Rotten.Tomatoes, data=tvdata_rank_no13)
+sum_md4 = summary(model4) # also for later use on inline codes
+sum_md4
+```
+
+The concepts above can be extended naturally to models with interactions between numeric and factor variables.
+```{r}
+model5 = lm(IMDb ~ . + Rotten.Tomatoes:Age, data=tvdata_rank_no13)
+sum_md5 = summary(model5) # also for later use on inline codes
+sum_md5
+```
+
+Compared with these three models:
+```{r}
+aovresult <- anova(model4, model3, model5)
+aovresult
+```
+Add one interaction, full model seems quite nice (although it's still a weak correlation).
+
+IMDb = 23.464467 + 
+-0.009186 * Year + 0.046692 * Rotten.Tomatoes + -0.209429 * Hulu
++ (-0.516497 + 0.000526 * Rotten.Tomatoes) * Age7+
++ (0.005813 + -0.007472 * Rotten.Tomatoes) * Age16+ 
++ (-0.453837 + -0.001010 * Rotten.Tomatoes) * Age18+ 
++ (0.609364 + -0.020359 * Rotten.Tomatoes) * Ageall
+
+
