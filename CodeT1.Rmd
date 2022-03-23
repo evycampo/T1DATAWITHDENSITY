@@ -203,25 +203,6 @@ disneytv <- subset(tvdata, Disney.==1)
 
 
 
-
-## Smart Question: Which streaming platform has the highest average rating (according to Rotten Tomatoes and IMDb)? 
-
-On our dataset Netflix, Hulu, Prime tv, Disney+ are four streaming platforms. To find the highest average rating according to Rotten Tomatoes and IMDb among the four streaming platforms T-test is chosen for. A t-test is a type of inferential statistic used to compare the means of two groups. By conducting t-test, average rating value (mean value) of all streaming platforms has been found. Mean values from t-test are analyzed to find the highest average rating value.  
-
-
-```{r results='markup'}
-net_rating<-t.test(netflixtv$IMDb,netflixtv$Rotten.Tomatoes)
-net_rating
-hulu_rating<-t.test(hulutv$IMDb,hulutv$Rotten.Tomatoes)
-hulu_rating
-prime_rating<-t.test(primetv$IMDb,primetv$Rotten.Tomatoes)
-prime_rating
-disney_rating<-t.test(disneytv$IMDb,disneytv$Rotten.Tomatoes)
-disney_rating
-```
-
-Prime Videos has the highest average IMDb rating which is 7.152538 among the all-streaming platforms. Netflix has the highest average Rotten Tomatoes rating which is 53.559107 among the all-streaming platforms. This is how the highest average rating is found. 
-
 ## Normality check for IMDb and Rotten Tomatoes
 
 We have found the average value of IMDb and Rotten Tomatoes rating. Now, we want to check whether the samples of these two variables are normally distributed or not. If it is normally distributed the mean and median of the variable will be the same. 
@@ -527,6 +508,28 @@ After seeing how much each streaming platform differed when it comes to age grou
 
 
 # Distributions and tests
+
+
+
+
+## Smart Question: Which streaming platform has the highest average rating (according to Rotten Tomatoes and IMDb)? 
+
+On our dataset Netflix, Hulu, Prime tv, Disney+ are four streaming platforms. To find the highest average rating according to Rotten Tomatoes and IMDb among the four streaming platforms T-test is chosen for. A t-test is a type of inferential statistic used to compare the means of two groups. By conducting t-test, average rating value (mean value) of all streaming platforms has been found. Mean values from t-test are analyzed to find the highest average rating value.  
+
+
+```{r results='markup'}
+net_rating<-t.test(netflixtv$IMDb,netflixtv$Rotten.Tomatoes)
+net_rating
+hulu_rating<-t.test(hulutv$IMDb,hulutv$Rotten.Tomatoes)
+hulu_rating
+prime_rating<-t.test(primetv$IMDb,primetv$Rotten.Tomatoes)
+prime_rating
+disney_rating<-t.test(disneytv$IMDb,disneytv$Rotten.Tomatoes)
+disney_rating
+```
+
+Prime Videos has the highest average IMDb rating which is 7.152538 among the all-streaming platforms. Netflix has the highest average Rotten Tomatoes rating which is 53.559107 among the all-streaming platforms. This is how the highest average rating is found. 
+
 
 ## SMART Question: Do the rating IMDb and Rotten Tomatoes depend on age variable? 
  
