@@ -227,7 +227,7 @@ Prime Videos has the highest average IMDb rating which is 7.152538 among the all
 We have found the average value of IMDb and Rotten Tomatoes rating. Now, we want to check whether the samples of these two variables are normally distributed or not. If it is normally distributed the mean and median of the variable will be the same. 
 
 ### Normality check for the variables IMDb and Rotten Tomatoes for Netflix
-```{r echo=FALSE}
+```{r message=FALSE, warning=FALSE}
 shapiro.test(netflixtv$IMDb)
 shapiro.test(netflixtv$Rotten.Tomatoes)
 
@@ -252,7 +252,7 @@ labs(x="Rotten.Tomatoes", y="frequency")
 Here p value for IMDb and Rotten.Tomatoes is less than 0.05 for Netflix. Histogram of IMDb is right-skewed also Histogram of Rotten.Tomatoes is slightly left-skewed. Thus, The mean and median are not equal. IMDb and Rotten Tomatoes ratings are not normally distributed for the Netflix platform.
 
 ### Normality check for the variables IMDb and Rotten Tomatoes for Hulu
-```{r}
+```{r message=FALSE, warning=FALSE}
 shapiro.test(hulutv$IMDb)
 shapiro.test(hulutv$Rotten.Tomatoes)
 
@@ -276,7 +276,7 @@ labs(x="Rotten.Tomatoes", y="frequency")
 Here p value for IMDb and Rotten.Tomatoes is less than 0.05 for Hulu. Histogram of IMDb is right-skewed and histogram of Rotten Tomatoes is slightly Bimodal. Thus, the mean and median are not equal. IMDb and Rotten Tomatoes ratings are not normally distributed for the Hulu platform.
 
 ### Normality check for the variables IMDb and Rotten Tomatoes for Prime tv
-```{r results='markup'}
+```{r message=FALSE, warning=FALSE}
 shapiro.test(primetv$IMDb)
 shapiro.test(primetv$Rotten.Tomatoes)
 library(ggplot2)
@@ -299,7 +299,7 @@ labs(x="Rotten.Tomatoes", y="frequency")
 Here p value for IMDb and Rotten.Tomatoes is less than 0.05 for Prime Videos. Histogram of IMDb is right-skewed also Histogram of Rotten.Tomatoes is Randomly distribution. IMDb and Rotten Tomatoes ratings are not normally distributed for the prime tv platform.
 
 ### Normality check for the variables IMDb and Rotten Tomatoes for Disney+
-```{r results='markup'}
+```{r message=FALSE, warning=FALSE}
 shapiro.test(disneytv$IMDb)
 shapiro.test(disneytv$Rotten.Tomatoes)
 library(ggplot2)
@@ -321,10 +321,10 @@ labs(x="Rotten.Tomatoes", y="frequency")
 
 Here p value for IMDb and Rotten.Tomatoes is less than 0.05 for Disney+. Histogram of IMDb is slightly right-skewed and randomly distributed. also Histogram of Rotten.Tomatoes is slightly left-skewed and randomly distribution.IMDb and Rotten Tomatoes ratings are not normally distributed for the Disney+ platform.
 
-----------------
 
 
-----------------
+
+
 
 ## SMART Questions
 
@@ -360,7 +360,9 @@ ggplot(tvdata, aes(x=Rotten.Tomatoes)) + geom_histogram(binwidth = 1)+ggtitle("F
 
 # table(tvdata$IMDb)
 # table(tvdata$Rotten.Tomatoes)
+```
 
+```{r include=FALSE}
 print("Mean IMDb rating:")
 mean(tvdata$IMDb,na.rm = TRUE)
 print("Median IMDb rating:")
@@ -377,11 +379,11 @@ print(10)
 
 ```
 
-|             | IMDb rating | RT rating |
+|             | IMDb rating | Rotten.Tomatoes rating |
 | ----------- | ----------- | ----------- |
-| Mean        | `r mean(tvdata$IMDb,na.rm = TRUE)` | `r mean(tvdata$IMDb,na.rm = TRUE)` |
-| Median      | `r mean(tvdata$IMDb,na.rm = TRUE)` | `r mean(tvdata$IMDb,na.rm = TRUE)` |
-| Mode        | `r mean(tvdata$IMDb,na.rm = TRUE)` | `r mean(tvdata$IMDb,na.rm = TRUE)` |
+| Mean        | `r mean(tvdata$IMDb,na.rm = TRUE)` | `r mean(tvdata$Rotten.Tomatoes,na.rm = TRUE)` |
+| Median      | `r median(tvdata$IMDb,na.rm = TRUE)` | `r median(tvdata$Rotten.Tomatoes,na.rm = TRUE)` |
+| Mode        | `r 7.4` | `r 10` |
 
 IMDb is a rating scale from 1 to 10, but the lowest rating on this list is 1.1 and the highest is 9.6. Rotten Tomatoes rates TV shows on a scale from 1-100 with a lowest score of 10 and a highest score of 100. As seen in the histogram plot, the distribution of IMDb ratings has a slight left skew. This is further exemplified by the fact that the median (blue) is larger than the mean (red). The Rotten Tomatoes ratings mean and median are almost equal, but there are some outliers in the data at the lower end of the rating system. The mode is a 10/100 with 304 shows receiving that rating. The Rotten Tomatoes rating is a combination of critics' ratings and audience ratings, but this data set only shows the total rating, which is a limitation of this dataset. It would have been interesting to see how critics and the audience agree or disagree about certain ratings. 
 In comparing these ratings distribution, it became obvious that IMDb, on average, gives higher ratings than Rotten Tomatoes. IMDb has a mean of 7.09/10 (70.9%) and a median of 7.3/10 (73%) while Rotten Tomatoes has a mean of 47.2/100 (47.2%) and a median of 48/100 (48%). This discrepancy was surprising since we expected the rating systems to generally agree. 
@@ -393,7 +395,9 @@ In order to further explore this unexpected discrepancy, we created a scatter pl
 ```{r results='markup'}
 
 ggplot(data=tvdata, aes(x=IMDb, y=Rotten.Tomatoes, col=Age)) + geom_point() + ggtitle("Comparison of Rating Systems")+ scale_color_manual(breaks=c("7+","13+","16+","18+","all",NA),values=c("red", "blue", "green","orange","black","grey"))
+```
 
+```{r include=FALSE}
 print("Mean IMDb rating, 7+:")
 mean(subset(tvdata,Age=="7+")$IMDb,na.rm = TRUE)
 print("Mean RT rating, 7+:")
@@ -421,6 +425,16 @@ mean(subset(tvdata,is.na(Age))$Rotten.Tomatoes,na.rm = TRUE)
 
 ```
 
+|             | Mean IMDb rating | Mean Rotten.Tomatoes rating |
+| ----------- | ----------- | ----------- |
+| 7+        | `r mean(subset(tvdata,Age=="7+")$IMDb,na.rm = TRUE)` | `r mean(subset(tvdata,Age=="7+")$Rotten.Tomatoes,na.rm = TRUE)` |
+| 13+      | `r mean(subset(tvdata,Age=="13+")$IMDb,na.rm = TRUE)` | `r mean(subset(tvdata,Age=="13+")$Rotten.Tomatoes,na.rm = TRUE)` |
+| 16+        | `r mean(subset(tvdata,Age=="16+")$IMDb,na.rm = TRUE)` | `r mean(subset(tvdata,Age=="16+")$Rotten.Tomatoes,na.rm = TRUE)` |
+| 18+        | `r mean(subset(tvdata,Age=="18+")$IMDb,na.rm = TRUE)` | `r mean(subset(tvdata,Age=="18+")$Rotten.Tomatoes,na.rm = TRUE)` |
+| all      | `r mean(subset(tvdata,Age=="all")$IMDb,na.rm = TRUE)` | `r mean(subset(tvdata,Age=="all")$Rotten.Tomatoes,na.rm = TRUE)` |
+| NA        | `r mean(subset(tvdata,is.na(Age))$IMDb,na.rm = TRUE)` | `r mean(subset(tvdata,is.na(Age))$Rotten.Tomatoes,na.rm = TRUE)` |
+
+
 This scatter plot further confirmed the fact that IMDb had higher ratings when compared to Rotten Tomatoes. There is a positive correlation between the two rating systems, but Rotten Tomatoes consistently has a lower overall rating. This helped us to form a new SMART question: what is the relationship between IMDb and Rotten Tomatoes?
 
 This plot also gave us some information about how shows for different age groups are rated. Shows intended for 16+ had the highest overall rating, with an average of 7.3/10 on IMDb and 62.7/100 on Rotten Tomatoes. The 13+ age group at the lowest average IMDb score of 6.83/10 and shows intended for all ages had the lowest Rotten Tomatoes score with 47.7/100. It should be noted that shows with no intended age group listed (NA) had a lower Rotten Tomatoes score of 31.7/100, but since that represents a dearth of data concerning age group, the subset was neglected in future analysis.
@@ -446,7 +460,9 @@ plot.data <- rbind(netflixtv, hulutv, primetv, disneytv)
 ggplot(plot.data, aes(x=Platform, y=IMDb, fill=Platform)) + geom_boxplot(outlier.shape = NA)+ggtitle("IMDb Rating for Platforms")+ylim(4,10)
 
 ggplot(plot.data, aes(x=Platform, y=Rotten.Tomatoes, fill=Platform)) + geom_boxplot(outlier.shape = NA)+ggtitle("Rotten Tomatoes Rating for Platforms")
+```
 
+```{r include=FALSE}
 print("Mean IMDb rating, Disney:")
 mean(disneytv$IMDb,na.rm=T)
 print("Mean RT rating, Disney:")
@@ -466,6 +482,14 @@ mean(primetv$Rotten.Tomatoes,na.rm=T)
 
 ```
 
+|             | Mean IMDb rating | Mean Rotten.Tomatoes rating |
+| ----------- | ----------- | ----------- |
+| Disney        | `r mean(disneytv$IMDb,na.rm=T)` | `r mean(disneytv$Rotten.Tomatoes,na.rm=T)` |
+| Hulu          | `r mean(hulutv$IMDb,na.rm=T)`   | `r mean(hulutv$Rotten.Tomatoes,na.rm=T)` |
+| Netflix       | `r mean(netflixtv$IMDb,na.rm=T)`| `r mean(netflixtv$Rotten.Tomatoes,na.rm=T)` |
+| Prime         | `r mean(primetv$IMDb,na.rm=T)`  | `r mean(primetv$Rotten.Tomatoes,na.rm=T)` |
+
+
 Much like how the rating systems had different overall distributions, they also painted different pictures for the average rating of shows on each platform. Using IMDb, Prime has the highest average rating of 7.15/10 and Disney has the lowest with 6.97/10. Looking at the Rotten Tomatoes ratings, however, Netflix has the highest average rating of 53.6/100, Hulu has the highest median score of 55/100, and Prime has the lowest average rating of 37.8/100. Prime is particularly interesting in this respect since it has the highest average rating with IMDb, but the lowest average rating with Rotten Tomatoes. This demonstrates that the question of "which platform has the highest average rating?" is not so straightforward.
 
 ### Age Groups by Platform
@@ -482,30 +506,25 @@ ggplot(netflixtv, aes(x=Age, fill=Age)) + geom_bar()+ggtitle("Targeted Age Group
 
 ggplot(primetv, aes(x=Age, fill=Age)) + geom_bar()+ggtitle("Targeted Age Groups (Prime)")+scale_x_discrete(limits=c("7+", "13+", "16+","18+","all"))
 
-nrow(subset(disneytv, Age=="all"))/nrow(disneytv)
-nrow(subset(hulutv, Age=="16+"))/nrow(hulutv)
-nrow(subset(netflixtv, Age=="18+"))/nrow(netflixtv)
-nrow(subset(primetv, Age=="7+"))/nrow(primetv)
+#nrow(subset(disneytv, Age=="all"))/nrow(disneytv)
+#nrow(subset(hulutv, Age=="16+"))/nrow(hulutv)
+#nrow(subset(netflixtv, Age=="18+"))/nrow(netflixtv)
+#nrow(subset(primetv, Age=="7+"))/nrow(primetv)
 
 ```
+
+|             | Ratio |
+| ----------- | ----------- |
+| nrow(subset(disneytv, Age=="all"))/nrow(disneytv)        | `r nrow(subset(disneytv, Age=="all"))/nrow(disneytv) ` |
+| nrow(subset(hulutv, Age=="16+"))/nrow(hulutv)          | `r nrow(subset(hulutv, Age=="16+"))/nrow(hulutv)`   |
+| nrow(subset(netflixtv, Age=="18+"))/nrow(netflixtv)       | `r nrow(subset(netflixtv, Age=="18+"))/nrow(netflixtv) `|
+| nrow(subset(primetv, Age=="7+"))/nrow(primetv)         | `r nrow(subset(primetv, Age=="7+"))/nrow(primetv) `  |
 
 Starting with Disney, the most frequent targeted age group was all ages, with 36.8% of the Disney TV shows listed falling into that category. For Hulu, 16+ was the most common age group at 30.9%. The most common age group for Netflix was 18+, comprising 24.5% of its TV shows. Prime was more evenly distributed amongst age groups (apart from 13+, which was very low), but 7+ was the most common age group at 11.6%.
 
 After seeing how much each streaming platform differed when it comes to age group, it would have been interesting to explore other demographics for the audience of each platform. Relevant datta in this respect could include gender, race, the number of views, and the actual age of the viewer (as opposed to the target age group). Since this data set did not include these features, this can be considered another limitation of the data. Our main focus was the TV show ratings, but we could have learned more about user preference and built a more detailed model with that additional information. 
 
-```{r}
 
-testfit1 <- lm(IMDb ~ Rotten.Tomatoes*Platform,data=plot.data)
-summary(testfit1)
-testfit2 <- lm(IMDb ~ Rotten.Tomatoes+Platform,data=plot.data)
-summary(testfit2)
-testfit3 <- lm(IMDb ~ Rotten.Tomatoes,data=plot.data)
-summary(testfit3)
-
-```
-
-
----------------------------
 
 # Distributions and tests
 
@@ -569,11 +588,20 @@ chitest8
 ```
 Since the p-value is 0, which is lower than 0.05, we need to reject the null hypothesis. Thus, IMDb and Rotten Tomatoes ratings for Disney+ are not independent. Age and rating are correlated for Disney+ platform. 
 
-----------------------
 
 
-This step is to clear data, change some string data to number and some to factor.
+
+
+# Multiple Linear Regression Model
+
+## SMART Question: What is the relationship between IMDb and Rotten Tomatoes?
+
+### Preparation work
+
+#### Drop NaN data and make histograms
+
 ```{r}
+# This step is to clear data, change some string data to number and some to factor.
 tvdata1 <- read.csv("tv_shows.csv", header=T, na.strings=c("","NA")) 
 tvdata1$IMDb<-gsub("/10","",as.character(tvdata1$IMDb))
 tvdata1$Rotten.Tomatoes<-gsub("/100","",as.character(tvdata1$Rotten.Tomatoes))
@@ -589,19 +617,12 @@ tvdata1$Prime.Video = factor(tvdata1$Prime.Video)
 tvdata1$Disney. = factor(tvdata1$Disney.)
 tvdata1$Age = factor(tvdata1$Age)
 
-str(tvdata1)
+# str(tvdata1)
 #View(tvdata)
 ```
 
-# Multiple Linear Regression Model
-
-## SMART Question: What is the relationship between IMDb and Rotten Tomatoes?
-
-### Preparation work
-
-#### Drop NaN data
 To analyze the score relationships between two platforms, we need to drop the rows that have no IMDb scores and no Rotten.Tomatoes scores.
-Meanwhile, the column of X, ID, Title and Type are useless, so we also drop these columns.
+Meanwhile, the column of X, ID, Title and Type are useless, so we also drop these columns. After we finished the preparation work, Let's have a look.
 ```{r}
 tvdata_rank = subset(tvdata1, (!is.na(IMDb)) & (!is.na(Rotten.Tomatoes)))
 tvdata_rank = subset(tvdata_rank, select = -c(X, ID, Title, Type))
@@ -618,7 +639,7 @@ pairs(tvdata_rank)
 ```
 
 #### Make a corrplot() with only the numerical variables
-```{r}
+```{r message=FALSE, warning=FALSE}
 loadPkg("corrplot")
 tvdata_rank_num = subset(tvdata_rank, select = -c(Age, Netflix, Hulu, Prime.Video, Disney.))
 
