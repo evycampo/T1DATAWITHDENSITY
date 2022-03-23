@@ -541,12 +541,14 @@ H1: Age and rating are not independent from each other.
 
 ## Independence check for Netflix platform 
 ```{r results='markup'}
-contable1= table(netflixtv$Age, netflixtv$IMDb)
+netflix2=subset(netflixtv,Age!="13+")
+
+contable1= table(netflix2$Age, netflix2$IMDb)
 contable1
 chitest1 = chisq.test(contable1)
 chitest1
 
-contable2 = table(netflixtv$Age, netflixtv$Rotten.Tomatoes)
+contable2 = table(netflix2$Age, netflix2$Rotten.Tomatoes)
 contable2
 chitest2 = chisq.test(contable2)
 chitest2
@@ -558,12 +560,14 @@ Since the p-value is 0, which is lower than 0.05, we need to reject the null hyp
 ## Independence check for Hulu platform
 
 ```{r results='markup' }
-contable3= table(hulutv$Age, hulutv$IMDb)
+hulu2=subset(hulutv, Age!="13+")
+
+contable3= table(hulu2$Age, hulu2$IMDb)
 contable3
 chitest3 = chisq.test(contable3)
 chitest3
 
-contable4 = table(hulutv$Age, hulutv$Rotten.Tomatoes)
+contable4 = table(hulu2$Age, hulu2$Rotten.Tomatoes)
 contable4
 chitest4 = chisq.test(contable4)
 chitest4
@@ -573,12 +577,14 @@ Since the p-value for IMDb is 0.5, which is greater than 0.05, we need to accept
 
 ## Independence check for Prime tv platform 
 ```{r results='markup'}
-contable5= table(primetv$Age, primetv$IMDb)
+prime2=subset(primetv, Age!="13+")
+
+contable5= table(prime2$Age, prime2$IMDb)
 contable5
 chitest5 = chisq.test(contable5)
 chitest5
 
-contable6 = table(primetv$Age, primetv$Rotten.Tomatoes)
+contable6 = table(prime2$Age, prime2$Rotten.Tomatoes)
 contable6
 chitest6 = chisq.test(contable6)
 chitest6
@@ -588,12 +594,14 @@ Since the p-value for IMDb is 0.002 the p-value for Rotten Tomatoes is 2e-16, wh
 
 ## Independence check for Disney+ platform 
 ```{r results='markup'}
-contable7= table(disneytv$Age, disneytv$IMDb)
+disney2=subset(disneytv, Age!="13+")
+
+contable7= table(disney2$Age, disney2$IMDb)
 contable7
 chitest7 = chisq.test(contable7)
 chitest7
 
-contable8 = table(disneytv$Age, disneytv$Rotten.Tomatoes)
+contable8 = table(disney2$Age, disney2$Rotten.Tomatoes)
 contable8
 chitest8= chisq.test(contable8)
 chitest8
