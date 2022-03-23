@@ -1,0 +1,305 @@
+title: "Group 1 Midterm"
+author: "Evelyn Campo, Xiao Qi, Nusrat Prithee, Roman"
+date: "today"
+# date: "`r Sys.Date()`"
+output:
+  html_document:
+    code_folding: hide
+    number_sections: false
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+
+```{r init, include=FALSE}
+library(ezids)
+library(ggplot2)
+library(dplyr)
+knitr::opts_chunk$set(warning = F, results = "hide", message = F)
+options(scientific=T, digits = 3) 
+```
+
+Importing the Dataset assigning "NA" to all blank cells
+```{r}
+tvdata <- read.csv("tv_shows.csv", header=T, na.strings=c("","NA")) 
+```
+
+
+Cleaning the Dataset
+```{r}
+tvdata$IMDb<-gsub("/10","",as.character(tvdata$IMDb)) #We had to delete the character /10 on every observation 
+tvdata$Rotten.Tomatoes<-gsub("/100","",as.character(tvdata$Rotten.Tomatoes)) #We had to delete the character /100 on every observation 
+tvdata$IMDb<-as.double(tvdata$IMDb) #as.double is a generic function. It is identical to as. numeric
+tvdata$Rotten.Tomatoes<-as.double(tvdata$Rotten.Tomatoes) #as.double is a generic function. It is identical to as. numeric
+tvdata = select(tvdata, -X, -ID, -Type) #This variables aren't of our interest
+
+str(tvdata)
+View(tvdata)
+```
+
+Counting missing values 
+```{r}
+sum(is.na(tvdata)) #Total NA
+mean(is.na(tvdata))
+
+#NA per variables
+sum(is.na(tvdata$Title))
+sum(is.na(tvdata$Year))
+sum(is.na(tvdata$Age))
+sum(is.na(tvdata$IMDb))
+sum(is.na(tvdata$`Rotten Tomatoes`))
+sum(is.na(tvdata$Netflix))
+sum(is.na(tvdata$Hulu))
+sum(is.na(tvdata$`Prime Video`))
+sum(is.na(tvdata$`Disney+`))
+
+```
+Age has the most missing values in the Dataset, and IMDb is the other variable with NA values.
+
+Streaming platforms into as.factor()
+```{r}
+tvdata$Netflix <- as.factor(tvdata$Netflix)  
+tvdata$Hulu <- as.factor(tvdata$Hulu)  
+tvdata$Prime.Video <- as.factor(tvdata$Prime.Video)
+tvdata$Disney. <- as.factor(tvdata$Disney.)
+
+```
+The streaming platforms are categorical. 1 represents if the TV show is found on their platform otherwise 0.
+
+
+Just undertanding a lilttle more about streaming platform variables and age
+```{r}
+
+print("Age:")
+table(tvdata$Age)
+print("Netflix:")
+table(tvdata$Netflix)
+print("Hulu:")
+table(tvdata$Hulu)
+print("Prime Video:")
+table(tvdata$Prime.Video)
+print("Disney:")
+table(tvdata$Disney.)
+
+```
+
+
+What are the most targeted age groups for the TV shows by Netflix, Hulu, Prime, disney
+Video? 
+
+```{r}
+
+print("Age:")
+table(tvdata$Age)
+prop.table(table(tvdata$Age))
+
+ggplot(data = na.omit(tvdata), aes(Age)) + 
+  geom_bar(col="red", 
+                 fill="blue", 
+                 alpha = .7) + # opacity
+  labs(title="Most targeted age group for all platforms: 16+ ") +
+  labs(x="Target age of viewers ", y="Frequency")
+
+#I am taking this graph from above since it works for this question
+```
+people who are 16 and older are the most targeted age groups for the tv shows among the all steamming platfrom.
+
+.Which year published the highest number of TV shows? 
+```{r}
+print("Year:")
+table(tvdata$Year)
+library(ggplot2)
+ggplot(data=tvdata, aes(Year)) + 
+  geom_histogram(bins = 30,
+                 col="red", 
+           fill="blue", 
+           alpha = .7) + # opacity
+  labs(title="Year during which the highest number of shows were published: 2017") +
+  labs(x="Year tv show was published", y="Frequency")
+#I am replacing the prevous code with the graphs from above to keep the same formatting
+```
+The highest number of TV shows were published in 2017 (685) and 2018 (562).And the histogram is right skewed which indicates that video publication is raising while time goes forward.
+
+
+```{r}
+
+netflixtv <- subset(tvdata, Netflix==1)
+hulutv <- subset(tvdata, Hulu==1)
+primetv <- subset(tvdata, Prime.Video==1)
+disneytv <- subset(tvdata, Disney.==1)
+
+```
+
+
+
+#Smart Question:Which streaming platform has the highest average rating (according to Rotten Tomatoes and IMDb)? 
+
+On our dataset Netflix, Hulu, Prime tv, Disney+ are four streaming platforms. To find the highest average rating according to Rotten Tomatoes and IMDb among the four streaming platforms T-test is chosen for. A t-test is a type of inferential statistic used to compare the means of two groups. By conducting t-test, average rating value (mean value) of all streaming platforms has been found. Mean values from t-test are analyzed to find the highest average rating value.  
+
+
+```{r results='markup'}
+net_rating<-t.test(netflixtv$IMDb,netflixtv$Rotten.Tomatoes)
+net_rating
+hulu_rating<-t.test(hulutv$IMDb,hulutv$Rotten.Tomatoes)
+hulu_rating
+prime_rating<-t.test(primetv$IMDb,primetv$Rotten.Tomatoes)
+prime_rating
+disney_rating<-t.test(disneytv$IMDb,disneytv$Rotten.Tomatoes)
+disney_rating
+```
+Prime Videos has the highest average IMDb rating which is 7.152538 among the all-streaming platforms. Netflix has the highest average Rotten Tomatoes rating which is 53.559107 among the all-streaming platforms. This is how the highest average rating is found. 
+
+#Normality check for IMDb and Rotten Tomatoes
+We have found the average value of IMDb and Rotten Tomatoes rating. Now, we want to check whether the samples of these two variables are normally distributed or not. If it is normally distributed the mean and median of the variable will be the same. 
+#Normality check for the variables IMDb and Rotten Tomatoes for Netflix
+```{r results='markup'}
+shapiro.test(netflixtv$IMDb)
+shapiro.test(netflixtv$Rotten.Tomatoes)
+
+library(ggplot2)
+ggplot(data=netflixtv,aes(x=IMDb,)) + 
+geom_histogram(col="red", 
+               fill="green", 
+               alpha = .7) + 
+labs(title="Netflix IMDb histogram") +
+labs(x="IMDB", y="frequency")
+
+ggplot(data=netflixtv,aes(x=Rotten.Tomatoes,)) + 
+geom_histogram(col="red", 
+               fill="green", 
+               alpha = .7) + 
+labs(title="Netflix Rotten.Tomatoes histogram") +
+labs(x="Rotten.Tomatoes", y="frequency")
+
+
+```
+Here p value for IMDb and Rotten.Tomatoes is less than 0.05 for Netflix. Histogram of IMDb is right-skewed also Histogram of Rotten.Tomatoes is slightly left-skewed. Thus, The mean and median are not equal. IMDb and Rotten Tomatoes ratings are not normally distributed for the Netflix platform.
+##Normality check for the variables IMDb and Rotten Tomatoes for Hulu
+```{r results='markup'}
+shapiro.test(hulutv$IMDb)
+shapiro.test(hulutv$Rotten.Tomatoes)
+
+library(ggplot2)
+ggplot(data=hulutv,aes(x=IMDb,)) + 
+geom_histogram(col="red", 
+               fill="green", 
+               alpha = .7) + 
+labs(title="Hulu IMDb histogram") +
+labs(x="IMDB", y="frequency")
+
+ggplot(data=hulutv,aes(x=Rotten.Tomatoes,)) + 
+geom_histogram(col="red", 
+               fill="green", 
+               alpha = .7) + 
+labs(title="hulu Rotten.Tomatoes histogram") +
+labs(x="Rotten.Tomatoes", y="frequency")
+
+```
+Here p value for IMDb and Rotten.Tomatoes is less than 0.05 for Hulu. Histogram of IMDb is right-skewed and histogram of Rotten Tomatoes is slightly Bimodal. Thus, the mean and median are not equal. IMDb and Rotten Tomatoes ratings are not normally distributed for the Hulu platform.
+###Normality check for the variables IMDb and Rotten Tomatoes for Prime tv
+```{r results='markup'}
+shapiro.test(primetv$IMDb)
+shapiro.test(primetv$Rotten.Tomatoes)
+library(ggplot2)
+ggplot(data=primetv,aes(x=IMDb,)) + 
+geom_histogram(col="red", 
+               fill="green", 
+               alpha = .7) + 
+labs(title="prime IMDb histogram") +
+labs(x="IMDB", y="frequency")
+
+ggplot(data=primetv,aes(x=Rotten.Tomatoes,)) + 
+geom_histogram(col="red", 
+               fill="green", 
+               alpha = .7) + 
+labs(title="prime Rotten.Tomatoes histogram") +
+labs(x="Rotten.Tomatoes", y="frequency")
+
+```
+Here p value for IMDb and Rotten.Tomatoes is less than 0.05 for Prime Videos. Histogram of IMDb is right-skewed also Histogram of Rotten.Tomatoes is Randomly distribution. IMDb and Rotten Tomatoes ratings are not normally distributed for the prime tv platform.
+
+####Normality check for the variables IMDb and Rotten Tomatoes for Disney+
+```{r results='markup'}
+shapiro.test(disneytv$IMDb)
+shapiro.test(disneytv$Rotten.Tomatoes)
+library(ggplot2)
+ggplot(data=disneytv,aes(x=IMDb,)) + 
+geom_histogram(col="red", 
+               fill="green", 
+               alpha = .7) + 
+labs(title="disney IMDb histogram") +
+labs(x="IMDB", y="frequency")
+
+ggplot(data=disneytv,aes(x=Rotten.Tomatoes,)) + 
+geom_histogram(col="red", 
+               fill="green", 
+               alpha = .7) + 
+labs(title="disney Rotten.Tomatoes histogram") +
+labs(x="Rotten.Tomatoes", y="frequency")
+
+```
+Here p value for IMDb and Rotten.Tomatoes is less than 0.05 for Disney+. Histogram of IMDb is slightly right-skewed and randomly distributed. also Histogram of Rotten.Tomatoes is slightly left-skewed and randomly distribution.IMDb and Rotten Tomatoes ratings are not normally distributed for the Disney+ platform.
+
+
+
+#SMART Question: Do the rating IMDb and Rotten Tomatoes depend on age variable? 
+ 
+We want to check the rating of streaming platforms on IMDb and Rotten Tomatoes are somehow related to the age of the audience. We conduct a chi-square test to check whether IMDb and Rotten Tomatoes are independent. 
+H0: Age and rating are independent from each other. 
+H1: Age and rating are not independent from each other. 
+
+#Independence check for Netflix platform 
+```{r results='markup'}
+contable1= table(netflixtv$Age, netflixtv$IMDb)
+chitest1 = chisq.test(contable1)
+chitest1
+
+contable2 = table(netflixtv$Age, netflixtv$Rotten.Tomatoes)
+chitest2 = chisq.test(contable2)
+chitest2
+
+
+```
+Since the p-value is 0, which is lower than 0.05, we need to reject the null hypothesis. Thus, IMDb and Rotten Tomatoes ratings for Netflix are not independent. Age and rating are correlated for Netflix platform. 
+
+##Independence check for Hulu platform
+
+```{r results='markup' }
+contable3= table(hulutv$Age, hulutv$IMDb)
+chitest3 = chisq.test(contable3)
+chitest3
+
+contable4 = table(hulutv$Age, hulutv$Rotten.Tomatoes)
+chitest4 = chisq.test(contable4)
+chitest4
+
+```
+Since the p-value for IMDb is 0.5, which is greater than 0.05, we need to accept the null hypothesis. Thus, IMDb for Hulu is independent. Age and IMDb rating are correlated for Hulu.  the p-value is 2e-16, which is lower than 0.05, we need to reject the null hypothesis. Thus, Rotten Tomatoes rating for Hulu is not independent. Age and Rotten Tomatoes ratings are correlated for Hulu platform.  
+###Independence check for Prime tv platform 
+```{r results='markup'}
+contable5= table(primetv$Age, primetv$IMDb)
+chitest5 = chisq.test(contable5)
+chitest5
+
+contable6 = table(primetv$Age, primetv$Rotten.Tomatoes)
+chitest6 = chisq.test(contable6)
+chitest6
+
+```
+Since the p-value for IMDb is 0.002 the p-value for Rotten Tomatoes is 2e-16, which are less than 0.05. we need to reject the null hypothesis. Thus, IMDb and Rotten Tomatoes rating for Prime tv are not independent. Age and rating are correlated for Prime tv platform. 
+####Independence check for Disney+ platform 
+```{r results='markup'}
+contable7= table(disneytv$Age, disneytv$IMDb)
+chitest7 = chisq.test(contable7)
+chitest7
+
+contable8 = table(disneytv$Age, disneytv$Rotten.Tomatoes)
+chitest8= chisq.test(contable8)
+chitest8
+
+```
+Since the p-value is 0, which is lower than 0.05, we need to reject the null hypothesis. Thus, IMDb and Rotten Tomatoes ratings for Disney+ are not independent. Age and rating are correlated for Disney+ platform. 
+
