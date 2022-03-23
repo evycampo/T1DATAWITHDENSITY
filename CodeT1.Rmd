@@ -788,14 +788,12 @@ After data cleaning and EDA on most variables in the dataset, we found that 16+ 
 
 Looking at the years during which TV shows were released, more and more TV shows are created in recent years and 2017 is the peak. There were very new shows produced during the 20th century, a majority listed were created in the past 20 years. 
 
-As we proceeded with hypothesis analysis of different platforms, comparing platforms, we found that IMDb has higher average rating than Rotten Tomatoes and IMDb and Rotten Tomatoes disagree about the highest rated platforms. 
+As we proceeded with hypothesis analysis of different platforms, comparing platforms, we found that IMDb has higher average rating than Rotten Tomatoes and IMDb and Rotten Tomatoes disagree about the highest rated platforms. Using IMDb, Prime has both the highest mean and median rating. According to Rotten Tomatoes, however, Prime has the lowest rating, Hulu has the highest median rating, and Netflix has the highest mean rating. 
 
 We also found that the target age group was highly dependent on the streaming platform. Disney TV shows catered to all ages, Netflix and Hulu focused on 18+, and Prime was more varied across multiple groups. 
 
 As we were exploring possible linear models, relating the rating systems to platform, age group, and year of creation, we found a correlation between age and Rotten Tomatoes using a linear model. This relation can be seen in our final results. 
- 
-IMDb and Rotten Tomatoes disagree about the highest rated platforms
-Prime is highest for IMDb, Hulu (median) and Netflix (mean) for RT
+
 IMDb and Rotten Tomatoes only have a weak correlation
 IMDb tends to give higher ratings than RT
 Both show normality, IMDb is more left skewed and RT has low-value outliers
