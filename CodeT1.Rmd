@@ -531,7 +531,9 @@ After seeing how much each streaming platform differed when it comes to age grou
 ## SMART Question: Do the rating IMDb and Rotten Tomatoes depend on age variable? 
  
 We want to check the rating of streaming platforms on IMDb and Rotten Tomatoes are somehow related to the age of the audience. We conduct a chi-square test to check whether IMDb and Rotten Tomatoes are independent. 
+
 H0: Age and rating are independent from each other. 
+
 H1: Age and rating are not independent from each other. 
 
 ## Independence check for Netflix platform 
