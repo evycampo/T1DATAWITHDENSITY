@@ -30,10 +30,11 @@ loadPkg("tidyr")
 Consumer preferences are important in decision-making for companies. The way consumers rank bundles of goods and services according to the levels of utility they are being provided with is an interesting metric to understand how companies have more power over others in a competitive market. In this project, Streaming Platforms are of interest as they play an important role in a more digital and working from home (HFM) alternative that families have nowadays. The pandemic certainly accentuated the consumption of this service and during this period it was evident the massive use of different platforms. As a way to understand this competitive market, this project focuses on understanding the patterns for each Streaming Platform, population target, various rankings for shows and how are these indicators correlated. In this sense, throughout the research it was found that the world's largest entertainment giants have ventured on streaming entertainment, including Netflix, Hulu, Prime Video, and Disney+. 
 
 ## Description of available data
-The source of the dataset is Kaggle Sample Dataset where it was extracted as a CSV
-format. The data consists of 5367 observations and 11 variables (ID, Title, Year, Age,
-IMDb, Rotten Tomatoes, Netflix, Hulu, Prime Video) The dataset constitutes data of
-various types like numerical and categorical.
+Various research has been found in this regard. For instance, JustWatch is an international streaming guide that helps over 20 million users per month to find something to watch on Netflix, Prime Video, Disney+, and other streaming platforms. This search engine for digital media is available in 60 countries, and the data is based on the interest its users show in streaming services. Some analyses have been done through this platform, proving streaming catalogs, which have continuously shifted and changed over the years. This changing scenario is interesting as it is showing the shift in preferences that users have throughout time. 
+
+Additionally, several tools were found about Market shares of selected Subscription video-on-demand (SVOD) services in the United States. Statista is a combined provider of market research as well as research and analysis services, which has concluded that Netflix's market share on the U.S. SVOD market decreased from 29 percent in 2019 to 20 percent in 2020 due to new platforms like Peacock and HBO Max entering the market last year. However, Netflix still leads the video streaming world, followed by Amazon Prime with a 16 percent market share (Statista, 2021)
+ 
+In this sense, a platform that included all the features to be reviewed was chosen for the project. The source of the dataset is Kaggle Sample Dataset where it was extracted as a CSV format. The data consists of 5367 observations and 11 variables (ID, Title, Year, Age, IMDb, Rotten Tomatoes, Netflix, Hulu, Prime Video) The dataset constitutes data of various types like numerical and categorical.
 
 ## SMART questions
 
