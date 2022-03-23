@@ -520,57 +520,65 @@ H1: Age and rating are not independent from each other.
 
 ## Independence check for Netflix platform 
 ```{r results='markup'}
-contable1= table(netflixtv$Age, netflixtv$IMDb)
+netflix2=subset(netflixtv,Age!="13+")
+
+contable1= table(netflix2$Age, netflix2$IMDb)
+contable1
 chitest1 = chisq.test(contable1)
 chitest1
 
-contable2 = table(netflixtv$Age, netflixtv$Rotten.Tomatoes)
+contable2 = table(netflix2$Age, netflix2$Rotten.Tomatoes)
+contable2
 chitest2 = chisq.test(contable2)
 chitest2
 
 
 ```
-Since the p-value is 0, which is lower than 0.05, we need to reject the null hypothesis. Thus, IMDb and Rotten Tomatoes ratings for Netflix are not independent. Age and rating are correlated for Netflix platform. 
+Since the p-value for IMDB is 0.009 AND p-value for Rotten Tomatoes0.0000000000000002, which are lower than 0.05, we need to reject the null hypothesis. Thus, IMDb and Rotten Tomatoes ratings for Netflix are not independent. Age and rating are correlated for Netflix platform. 
 
 ## Independence check for Hulu platform
 
 ```{r results='markup' }
-contable3= table(hulutv$Age, hulutv$IMDb)
+hulu2=subset(hulutv,Age!="13+")
+contable3= table(hulu2$Age, hulu2$IMDb)
 chitest3 = chisq.test(contable3)
 chitest3
 
-contable4 = table(hulutv$Age, hulutv$Rotten.Tomatoes)
+contable4 = table(hulu2$Age, hulu2$Rotten.Tomatoes)
 chitest4 = chisq.test(contable4)
 chitest4
 
 ```
-Since the p-value for IMDb is 0.5, which is greater than 0.05, we need to accept the null hypothesis. Thus, IMDb for Hulu is independent. Age and IMDb rating are correlated for Hulu.  the p-value is 2e-16, which is lower than 0.05, we need to reject the null hypothesis. Thus, Rotten Tomatoes rating for Hulu is not independent. Age and Rotten Tomatoes ratings are correlated for Hulu platform. 
+Since the p-value for IMDb is 0.1, which is greater than 0.05, we need to accept the null hypothesis. Thus, IMDb for Hulu is independent. Age and IMDb rating are correlated for Hulu.  the p-value is 0.001, which is lower than 0.05, we need to reject the null hypothesis. Thus, Rotten Tomatoes rating for Hulu is not independent. Age and Rotten Tomatoes ratings are correlated for Hulu platform. 
 
 ## Independence check for Prime tv platform 
 ```{r results='markup'}
-contable5= table(primetv$Age, primetv$IMDb)
+primetv2=subset(primetv,Age!="13+")
+contable5= table(primetv2$Age, primetv2$IMDb)
 chitest5 = chisq.test(contable5)
 chitest5
 
-contable6 = table(primetv$Age, primetv$Rotten.Tomatoes)
+contable6 = table(primetv2$Age, primetv2$Rotten.Tomatoes)
 chitest6 = chisq.test(contable6)
 chitest6
 
 ```
-Since the p-value for IMDb is 0.002 the p-value for Rotten Tomatoes is 2e-16, which are less than 0.05. we need to reject the null hypothesis. Thus, IMDb and Rotten Tomatoes rating for Prime tv are not independent. Age and rating are correlated for Prime tv platform. 
+Since the p-value for IMDb is 0.2, which is greater than 0.05, we need to accept the null hypothesis. Thus, IMDb for primetv is independent. Age and IMDb rating are correlated for primetv.  the p-value is 0.0000002, which is lower than 0.05, we need to reject the null hypothesis. Thus, Rotten Tomatoes rating for primetv is not independent. Age and Rotten Tomatoes ratings are correlated for primetv platform.
 
 ## Independence check for Disney+ platform 
 ```{r results='markup'}
-contable7= table(disneytv$Age, disneytv$IMDb)
+disneytv2=subset(disneytv,Age!="13+")
+contable7= table(disneytv2$Age, disneytv2$IMDb)
 chitest7 = chisq.test(contable7)
 chitest7
 
-contable8 = table(disneytv$Age, disneytv$Rotten.Tomatoes)
+contable8 = table(disneytv2$Age, disneytv2$Rotten.Tomatoes)
 chitest8= chisq.test(contable8)
 chitest8
 
 ```
-Since the p-value is 0, which is lower than 0.05, we need to reject the null hypothesis. Thus, IMDb and Rotten Tomatoes ratings for Disney+ are not independent. Age and rating are correlated for Disney+ platform. 
+Since the p-value for IMDB is 0.000006 AND p-value for Rotten Tomatoes 0.01, which are lower than 0.05, we need to reject the null hypothesis. Thus, IMDb and Rotten Tomatoes ratings for Diseney+ are not independent. Age and rating are correlated for Disney+ platform. 
+
 
 ----------------------
 
