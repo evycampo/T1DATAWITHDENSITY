@@ -27,15 +27,7 @@ loadPkg("tidyr")
 ```
 
 # Introduction
-
-## Background
-Some of the world's largest entertainment giants have ventured on streaming
-entertainment during the previous decade, including Netflix, Hulu, Prime Video, and
-Disney+. As more individuals are compelled to stay at home to prevent the spread of
-the new coronavirus, the idea of a bored, cable-cutting consumer looking for shows,
-documentaries or series to watch for weeks on end has become a reality. As a result, Tv
-shows found on Netflix, Hulu, Prime video, and Disney+ is our selected topic for the
-project.
+Consumer preferences are important in decision-making for companies. The way consumers rank bundles of goods and services according to the levels of utility they are being provided with is an interesting metric to understand how companies have more power over others in a competitive market. In this project, Streaming Platforms are of interest as they play an important role in a more digital and working from home (HFM) alternative that families have nowadays. The pandemic certainly accentuated the consumption of this service and during this period it was evident the massive use of different platforms. As a way to understand this competitive market, this project focuses on understanding the patterns for each Streaming Platform, population target, various rankings for shows and how are these indicators correlated. In this sense, throughout the research it was found that the world's largest entertainment giants have ventured on streaming entertainment, including Netflix, Hulu, Prime Video, and Disney+. 
 
 ## Description of available data
 The source of the dataset is Kaggle Sample Dataset where it was extracted as a CSV
