@@ -203,25 +203,6 @@ disneytv <- subset(tvdata, Disney.==1)
 
 
 
-
-## Smart Question: Which streaming platform has the highest average rating (according to Rotten Tomatoes and IMDb)? 
-
-On our dataset Netflix, Hulu, Prime tv, Disney+ are four streaming platforms. To find the highest average rating according to Rotten Tomatoes and IMDb among the four streaming platforms T-test is chosen for. A t-test is a type of inferential statistic used to compare the means of two groups. By conducting t-test, average rating value (mean value) of all streaming platforms has been found. Mean values from t-test are analyzed to find the highest average rating value.  
-
-
-```{r results='markup'}
-net_rating<-t.test(netflixtv$IMDb,netflixtv$Rotten.Tomatoes)
-net_rating
-hulu_rating<-t.test(hulutv$IMDb,hulutv$Rotten.Tomatoes)
-hulu_rating
-prime_rating<-t.test(primetv$IMDb,primetv$Rotten.Tomatoes)
-prime_rating
-disney_rating<-t.test(disneytv$IMDb,disneytv$Rotten.Tomatoes)
-disney_rating
-```
-
-Prime Videos has the highest average IMDb rating which is 7.152538 among the all-streaming platforms. Netflix has the highest average Rotten Tomatoes rating which is 53.559107 among the all-streaming platforms. This is how the highest average rating is found. 
-
 ## Normality check for IMDb and Rotten Tomatoes
 
 We have found the average value of IMDb and Rotten Tomatoes rating. Now, we want to check whether the samples of these two variables are normally distributed or not. If it is normally distributed the mean and median of the variable will be the same. 
@@ -528,6 +509,28 @@ After seeing how much each streaming platform differed when it comes to age grou
 
 # Distributions and tests
 
+
+
+
+## Smart Question: Which streaming platform has the highest average rating (according to Rotten Tomatoes and IMDb)? 
+
+On our dataset Netflix, Hulu, Prime tv, Disney+ are four streaming platforms. To find the highest average rating according to Rotten Tomatoes and IMDb among the four streaming platforms T-test is chosen for. A t-test is a type of inferential statistic used to compare the means of two groups. By conducting t-test, average rating value (mean value) of all streaming platforms has been found. Mean values from t-test are analyzed to find the highest average rating value.  
+
+
+```{r results='markup'}
+net_rating<-t.test(netflixtv$IMDb,netflixtv$Rotten.Tomatoes)
+net_rating
+hulu_rating<-t.test(hulutv$IMDb,hulutv$Rotten.Tomatoes)
+hulu_rating
+prime_rating<-t.test(primetv$IMDb,primetv$Rotten.Tomatoes)
+prime_rating
+disney_rating<-t.test(disneytv$IMDb,disneytv$Rotten.Tomatoes)
+disney_rating
+```
+
+Prime Videos has the highest average IMDb rating which is 7.152538 among the all-streaming platforms. Netflix has the highest average Rotten Tomatoes rating which is 53.559107 among the all-streaming platforms. This is how the highest average rating is found. 
+
+
 ## SMART Question: Do the rating IMDb and Rotten Tomatoes depend on age variable? 
  
 We want to check the rating of streaming platforms on IMDb and Rotten Tomatoes are somehow related to the age of the audience. We conduct a chi-square test to check whether IMDb and Rotten Tomatoes are independent. 
@@ -778,7 +781,7 @@ Tomatoes and IMDb)?
 
 The independent variables we were considering include the target age group and the straming platform. Our depenent variable was the TV show rating, including both IMDb and Rotten Tomatoes.
 
-Our analysis provided insights into people's preference of TV shows in different platforms. After data cleaning and EDA on most variables in the dataset, we found that 16+ is the most targeted age for TV shows, followed by 18+, which means the most target people is adolescence and young adults. Looking at the years during which TV shows were released, more and more TV shows are created in recent years and 2017 is the peak. There were very new shows produced during the 20th century, a majority listed were created in the past 20 years. As we proceeded with hypothesis analysis of different platforms, comparing platforms, we found that IMDb has higher average rating than Rotten Tomatoes and IMDb and Rotten Tomatoes disagree about the highest rated platforms. We also found that the target age group was highly dependent on the streaming platform. Disney TV shows catered to all ages, Netflix and Hulu focused on 18+, and Prime was more varied across multiple groups. As we were exploring possible linear models, relating the rating systems to platform, age group, and year of creation, we found a correlation between age and Rotten Tomatoes using a linear model. 
+Our analysis provided insights into people's preference of TV shows in different platforms. After data cleaning and EDA on most variables in the dataset, we found that 16+ is the most targeted age for TV shows, followed by 18+, which means the most target people is adolescence and young adults. Looking at the years during which TV shows were released, more and more TV shows are created in recent years and 2017 is the peak. There were very new shows produced during the 20th century, a majority listed were created in the past 20 years. As we proceeded with hypothesis analysis of different platforms, comparing platforms, we found that IMDb has higher average rating than Rotten Tomatoes and IMDb and Rotten Tomatoes disagree about the highest rated platforms. We also found that the target age group was highly dependent on the streaming platform. Disney TV shows catered to all ages, Netflix and Hulu focused on 18+, and Prime was more varied across multiple groups. As we were exploring possible linear models, relating the rating systems to platform, age group, and year of creation, we found a correlation between age and Rotten Tomatoes using a linear model. This relation can be seen in our final results. 
  
 IMDb and Rotten Tomatoes disagree about the highest rated platforms
 Prime is highest for IMDb, Hulu (median) and Netflix (mean) for RT
