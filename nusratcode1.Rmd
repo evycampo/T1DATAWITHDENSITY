@@ -123,7 +123,6 @@ ggplot(data=tvdata, aes(Year)) +
 ```
 The highest number of TV shows were published in 2017 (685) and 2018 (562).And the histogram is right skewed which indicates that video publication is raising while time goes forward.
 
-Normality check of Variables
 
 ```{r}
 
