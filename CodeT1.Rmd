@@ -778,14 +778,9 @@ Tomatoes and IMDb)?
 
 The independent variables we were considering include the target age group and the straming platform. Our depenent variable was the TV show rating, including both IMDb and Rotten Tomatoes.
 
-Input Data:
-Independent variables being considered: age group, streaming platform,
-Output Data:
-Response being considered: ratings
+Our analysis provided insights into people's preference of TV shows in different platforms. After data cleaning and EDA on most variables in the dataset, we found that 16+ is the most targeted age for tv shows, followed by 18+, which means the most target people is adolescence and adults. Looking at the years during which TV shows were released, more and more TV shows are created in recent years and 2017 is the peak. 
 
-This analysis provided insights into people's preference of TV shows in different platforms. After data cleaning and EDA on most variables in the dataset, we found that 16+ is the most targeted age for tv shows, followed by 18+, which means the most target people is adolescence and adults. Looking at the years during which TV shows were released, more and more TV shows are created in recent years and 2017 is the peak. 
-
-As we proceeded with hypothesis analysis of different platforms, comparing with the two platforms, we can find that IMDb has higher average rating than Rotten Tomatoes and IMDb and Rotten Tomatoes disagree about the highest rated platforms.
+As we proceeded with hypothesis analysis of different platforms, comparing with the two platforms, we can find that IMDb has higher average rating than Rotten Tomatoes and IMDb and Rotten Tomatoes disagree about the highest rated platforms. We also found that the target age group was highly dependent on the streaming platform. Disney TV shows catered to all ages, Netflix and Hulu focused on 18+, and Prime was more varied across multiple groups.
 
 + Targeted age groups highly dependent on streaming platform
  - Specific correlation shown between Hulu and Age
