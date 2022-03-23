@@ -42,16 +42,6 @@ In order to make the dataset manageable, only 9 variables out of the 11 provided
 
 The project consists of 5368 observations, where 3089 missing values correspong to variables ages (2127) and IMDb (962).
 
-## SMART questions
-
-1. What are the most targeted age groups for the TV shows by Netflix, Hulu, PrimeVideo, Disney+?
-
-2. Which year published the highest number of TV shows?
-
-3. Which streaming platform has the highest average rating (according to Rotten Tomatoes and IMDb)?
-
-4. What is the relationship between IMDb and Rotten Tomatoes?
-
 
 # Understanding the data
 
@@ -71,7 +61,6 @@ tvdata$Rotten.Tomatoes<-as.double(tvdata$Rotten.Tomatoes) #as.double is a generi
 tvdata = select(tvdata, -X, -ID, -Type) #This variables aren't of our interest
 
 str(tvdata)
-View(tvdata)
 ```
 
 ## Cleaning the Dataset
@@ -121,34 +110,6 @@ tvdata$Disney. <- as.factor(tvdata$Disney.)
 ```
 
 
-## Just undertanding a little more about streaming platform variables and age
-
-### Age:
-```{r}
-table(tvdata$Age)
-```
-
-### Netflix:
-```{r}
-table(tvdata$Netflix)
-```
-
-### Hulu:
-```{r}
-table(tvdata$Hulu)
-```
-
-### Prime Video:
-```{r}
-table(tvdata$Prime.Video)
-```
-
-### Disney:
-```{r}
-table(tvdata$Disney.)
-```
-
-
 # Exploratory Data Analysis
 
 ## Smart Question: What are the most targeted age groups for the TV shows by Netflix, Hulu, Prime, disney Video? 
@@ -170,7 +131,7 @@ ggplot(data = na.omit(tvdata), aes(Age)) +
 #I am taking this graph from above since it works for this question
 ```
 
-people who are 16 and older are the most targeted age groups for the tv shows among the all steamming platfrom.
+People who are 16 and older are the most targeted age groups for the tv shows among the all steamming platfrom.
 
 ## Smart Question: Which year published the highest number of TV shows? 
 ```{r}
@@ -200,9 +161,6 @@ disneytv <- subset(tvdata, Disney.==1)
 ```
 
 
-
-
-
 ## Normality check for IMDb and Rotten Tomatoes
 
 We have found the average value of IMDb and Rotten Tomatoes rating. Now, we want to check whether the samples of these two variables are normally distributed or not. If it is normally distributed the mean and median of the variable will be the same. 
@@ -230,7 +188,7 @@ labs(x="Rotten.Tomatoes", y="frequency")
 
 ```
 
-Here p value for IMDb and Rotten.Tomatoes is less than 0.05 for Netflix. Histogram of IMDb is right-skewed also Histogram of Rotten.Tomatoes is slightly left-skewed. Thus, The mean and median are not equal. IMDb and Rotten Tomatoes ratings are not normally distributed for the Netflix platform.
+Here, p value for IMDb and Rotten.Tomatoes is less than 0.05 for Netflix. Histogram of IMDb is right-skewed also Histogram of Rotten.Tomatoes is slightly left-skewed. Thus, The mean and median are not equal. IMDb and Rotten Tomatoes ratings are not normally distributed for the Netflix platform.
 
 ### Normality check for the variables IMDb and Rotten Tomatoes for Hulu
 ```{r}
@@ -302,12 +260,8 @@ labs(x="Rotten.Tomatoes", y="frequency")
 
 Here p value for IMDb and Rotten.Tomatoes is less than 0.05 for Disney+. Histogram of IMDb is slightly right-skewed and randomly distributed. also Histogram of Rotten.Tomatoes is slightly left-skewed and randomly distribution.IMDb and Rotten Tomatoes ratings are not normally distributed for the Disney+ platform.
 
-----------------
 
-
-----------------
-
-## SMART Questions
+## SMART Questions 
 
 After an initial examination of our chosen data set, we decided on three SMART questions to focus on:
 
@@ -325,7 +279,7 @@ What is the relationship between IMDb and Rotten Tomatoes?
 
 We had not initially considered the idea that the IMDb and Rotten Tomatoes rating systems would differ by much, but more in-depth analysis revealed that there were significant differences between how the two systems rated shows. This created an additional dimension of analysis that we did not initially anticipate.
 
-# Exploratory Data Analysis
+# Exploratory Data Analysis and Limitations
 
 ## Rating Systems
 
@@ -571,8 +525,6 @@ chitest8
 ```
 Since the p-value is 0, which is lower than 0.05, we need to reject the null hypothesis. Thus, IMDb and Rotten Tomatoes ratings for Disney+ are not independent. Age and rating are correlated for Disney+ platform. 
 
-----------------------
-
 
 This step is to clear data, change some string data to number and some to factor.
 ```{r}
@@ -731,21 +683,6 @@ As the IMDb histogram above is a little left-skewed, it means there are many out
 
 # Conclusion
 
-Some of the world's largest entertainment giants have ventured on streaming entertainment during the previous decade, including Netflix, Hulu, Prime Video, and Disney+. As more individuals are compelled to stay at home to prevent the spread of the new coronavirus, the idea of a bored, cable-cutting consumer looking for shows, documentaries or series to watch for weeks on end has become a reality. As a result, TV shows found on Netflix, Hulu, Prime video, and Disney+ is our selected topic for the project. We completed an analysis of the rate of TV shows that have been streaming over time, the most popular streaming platform, and targeted audience will be conducted.
-The source of the dataset is Kaggle Sample Dataset where it was extracted as a CSV format. The data consists of 5367 observations and 11 variables (ID, Title, Year, Age, IMDb, Rotten Tomatoes, Netflix, Hulu, Prime Video) The dataset constitutes data of various types like numerical and categorical. 
-
-SMART QUESTIONS:
-
-1.What are the most targeted age groups for the TV shows by Netflix, Hulu, Prime
-Video?
-
-2.Which year published the highest number of TV shows?
-
-3.Which streaming platform has the highest average rating (according to Rotten
-Tomatoes and IMDb)?
-
-4.What is the relationship between IMDb and Rotten Tomatoes?
-
 The independent variables we were considering include the target age group and the straming platform. Our depenent variable was the TV show rating, including both IMDb and Rotten Tomatoes.
 Our analysis provided insights into people's preference of TV shows in different platforms. 
 
@@ -759,4 +696,4 @@ As we proceeded with hypothesis analysis of different platforms and ratings, we 
 
 As we were exploring possible linear models, relating the rating systems to platform, age group, and year of creation, we found a correlation between age and Rotten Tomatoes using a linear model. This relation can be seen in our final results. 
 
-# Bibliography
+# References
