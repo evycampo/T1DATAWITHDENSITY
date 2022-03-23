@@ -134,12 +134,14 @@ disneytv <- subset(tvdata, Disney.==1)
 
 ```
 
+
+
 #Smart Question:Which streaming platform has the highest average rating (according to Rotten Tomatoes and IMDb)? 
 
 On our dataset Netflix, Hulu, Prime tv, Disney+ are four streaming platforms. To find the highest average rating according to Rotten Tomatoes and IMDb among the four streaming platforms T-test is chosen for. A t-test is a type of inferential statistic used to compare the means of two groups. By conducting t-test, average rating value (mean value) of all streaming platforms has been found. Mean values from t-test are analyzed to find the highest average rating value.  
 
 
-```{r q06}
+```{r }
 net_rating<-t.test(netflixtv$IMDb,netflixtv$Rotten.Tomatoes)
 net_rating
 hulu_rating<-t.test(hulutv$IMDb,hulutv$Rotten.Tomatoes)
@@ -150,7 +152,7 @@ disney_rating<-t.test(disneytv$IMDb,disneytv$Rotten.Tomatoes)
 disney_rating
 ```
 Prime Videos has the highest average IMDb rating which is 7.152538 among the all-streaming platforms. Netflix has the highest average Rotten Tomatoes rating which is 53.559107 among the all-streaming platforms. This is how the highest average rating is found. 
- 
+
 #Normality check for IMDb and Rotten Tomatoes
 We have found the average value of IMDb and Rotten Tomatoes rating. Now, we want to check whether the samples of these two variables are normally distributed or not. If it is normally distributed the mean and median of the variable will be the same. 
 #Normality check for the variables IMDb and Rotten Tomatoes for Netflix
@@ -176,7 +178,7 @@ labs(x="Rotten.Tomatoes", y="frequency")
 
 ```
 Here p value for IMDb and Rotten.Tomatoes is less than 0.05 for Netflix. Histogram of IMDb is right-skewed also Histogram of Rotten.Tomatoes is slightly left-skewed. Thus, The mean and median are not equal. IMDb and Rotten Tomatoes ratings are not normally distributed for the Netflix platform.
-#Normality check for the variables IMDb and Rotten Tomatoes for Hulu
+##Normality check for the variables IMDb and Rotten Tomatoes for Hulu
 ```{r}
 shapiro.test(hulutv$IMDb)
 shapiro.test(hulutv$Rotten.Tomatoes)
@@ -198,7 +200,7 @@ labs(x="Rotten.Tomatoes", y="frequency")
 
 ```
 Here p value for IMDb and Rotten.Tomatoes is less than 0.05 for Hulu. Histogram of IMDb is right-skewed and histogram of Rotten Tomatoes is slightly Bimodal. Thus, the mean and median are not equal. IMDb and Rotten Tomatoes ratings are not normally distributed for the Hulu platform.
-#Normality check for the variables IMDb and Rotten Tomatoes for Prime tv
+###Normality check for the variables IMDb and Rotten Tomatoes for Prime tv
 ```{r}
 shapiro.test(primetv$IMDb)
 shapiro.test(primetv$Rotten.Tomatoes)
@@ -220,7 +222,7 @@ labs(x="Rotten.Tomatoes", y="frequency")
 ```
 Here p value for IMDb and Rotten.Tomatoes is less than 0.05 for Prime Videos. Histogram of IMDb is right-skewed also Histogram of Rotten.Tomatoes is Randomly distribution. IMDb and Rotten Tomatoes ratings are not normally distributed for the prime tv platform.
 
-#Normality check for the variables IMDb and Rotten Tomatoes for Disney+
+####Normality check for the variables IMDb and Rotten Tomatoes for Disney+
 ```{r}
 shapiro.test(disneytv$IMDb)
 shapiro.test(disneytv$Rotten.Tomatoes)
@@ -241,9 +243,9 @@ labs(x="Rotten.Tomatoes", y="frequency")
 
 ```
 Here p value for IMDb and Rotten.Tomatoes is less than 0.05 for Disney+. Histogram of IMDb is slightly right-skewed and randomly distributed. also Histogram of Rotten.Tomatoes is slightly left-skewed and randomly distribution.IMDb and Rotten Tomatoes ratings are not normally distributed for the Disney+ platform.
-----------------
 
----------------------------
+
+
 #SMART Question: Do the rating IMDb and Rotten Tomatoes depend on age variable? 
  
 We want to check the rating of streaming platforms on IMDb and Rotten Tomatoes are somehow related to the age of the audience. We conduct a chi-square test to check whether IMDb and Rotten Tomatoes are independent. 
@@ -266,7 +268,7 @@ chitest2
 ```
 Since the p-value is 0, which is lower than 0.05, we need to reject the null hypothesis. Thus, IMDb and Rotten Tomatoes ratings for Netflix are not independent. Age and rating are correlated for Netflix platform. 
 
-#Independence check for Hulu platform
+##Independence check for Hulu platform
 
 ```{r }
 contable3= table(hulutv$Age, hulutv$IMDb)
@@ -281,7 +283,7 @@ chitest4
 
 ```
 Since the p-value for IMDb is 0.5, which is greater than 0.05, we need to accept the null hypothesis. Thus, IMDb for Hulu is independent. Age and IMDb rating are correlated for Hulu.  the p-value is 2e-16, which is lower than 0.05, we need to reject the null hypothesis. Thus, Rotten Tomatoes rating for Hulu is not independent. Age and Rotten Tomatoes ratings are correlated for Hulu platform.  
-#Independence check for Prime tv platform 
+###Independence check for Prime tv platform 
 ```{r}
 contable5= table(primetv$Age, primetv$IMDb)
 contable5
@@ -295,7 +297,7 @@ chitest6
 
 ```
 Since the p-value for IMDb is 0.002 the p-value for Rotten Tomatoes is 2e-16, which are less than 0.05. we need to reject the null hypothesis. Thus, IMDb and Rotten Tomatoes rating for Prime tv are not independent. Age and rating are correlated for Prime tv platform. 
-#Independence check for Disney+ platform 
+####Independence check for Disney+ platform 
 ```{r}
 contable7= table(disneytv$Age, disneytv$IMDb)
 contable7
