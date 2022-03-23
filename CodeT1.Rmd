@@ -732,6 +732,7 @@ As the IMDb histogram above is a little left-skewed, it means there are many out
 # Conclusion
 
 Some of the world's largest entertainment giants have ventured on streaming entertainment during the previous decade, including Netflix, Hulu, Prime Video, and Disney+. As more individuals are compelled to stay at home to prevent the spread of the new coronavirus, the idea of a bored, cable-cutting consumer looking for shows, documentaries or series to watch for weeks on end has become a reality. As a result, TV shows found on Netflix, Hulu, Prime video, and Disney+ is our selected topic for the project. We completed an analysis of the rate of TV shows that have been streaming over time, the most popular streaming platform, and targeted audience will be conducted.
+<<<<<<< HEAD
 
 The source of the dataset is Kaggle Sample Dataset where it was extracted as a CSV format. The data consists of 5367 observations and 11 variables (ID, Title, Year, Age, IMDb, Rotten Tomatoes, Netflix, Hulu, Prime Video) The dataset constitutes data of various types like numerical and categorical. 
 
@@ -754,6 +755,32 @@ Looking at the years during which TV shows were released, more and more TV shows
 As we proceeded with hypothesis analysis of different platforms and ratings, we found that IMDb has higher average rating than Rotten Tomatoes and there is only a weak correlation betwween the two rating systems. There is a positive correlation between IMDb and Rotten Tomatoes, but they have different distributions overall: IMDb has a higher average and is left skewed while Rotten Tomatoes tends to be lower and has low-value outliers. In addition to that, IMDb and Rotten Tomatoes disagree about the highest rated platforms. Using IMDb, Prime has both the highest mean and median rating. According to Rotten Tomatoes, however, Prime has the lowest rating, Hulu has the highest median rating, and Netflix has the highest mean rating. 
 
 We also found that the target age group was highly dependent on the streaming platform. Disney TV shows catered to all ages, Netflix and Hulu focused on 18+, and Prime was more varied across multiple groups...
+=======
+The source of the dataset is Kaggle Sample Dataset where it was extracted as a CSV format. The data consists of 5367 observations and 11 variables (ID, Title, Year, Age, IMDb, Rotten Tomatoes, Netflix, Hulu, Prime Video) The dataset constitutes data of various types like numerical and categorical. 
+
+SMART QUESTIONS:
+
+1.What are the most targeted age groups for the TV shows by Netflix, Hulu, Prime
+Video?
+
+2.Which year published the highest number of TV shows?
+
+3.Which streaming platform has the highest average rating (according to Rotten
+Tomatoes and IMDb)?
+
+4.What is the relationship between IMDb and Rotten Tomatoes?
+
+The independent variables we were considering include the target age group and the straming platform. Our depenent variable was the TV show rating, including both IMDb and Rotten Tomatoes.
+Our analysis provided insights into people's preference of TV shows in different platforms. 
+
+After data cleaning and EDA on most variables in the dataset, we found that 16+ is the most targeted age for TV shows, followed by 18+, which means the most target people is adolescence and young adults. 
+
+We also found that the target age group was highly dependent on the streaming platform. Disney TV shows catered to all ages, Netflix and Hulu focused on 18+, and Prime was more varied across multiple groups. 
+
+Looking at the years during which TV shows were released, more and more TV shows are created in recent years and 2017 is the peak. There were very new shows produced during the 20th century, a majority listed were created in the past 20 years.
+
+As we proceeded with hypothesis analysis of different platforms and ratings, we found that IMDb has higher average rating than Rotten Tomatoes and there is only a weak correlation betwween the two rating systems. There is a positive correlation between IMDb and Rotten Tomatoes, but they have different distributions overall: IMDb has a higher average and is left skewed while Rotten Tomatoes tends to be lower and has low-value outliers. In addition to that, IMDb and Rotten Tomatoes disagree about the highest rated platforms. Using IMDb, Prime has both the highest mean and median rating. According to Rotten Tomatoes, however, Prime has the lowest rating, Hulu has the highest median rating, and Netflix has the highest mean rating. 
+>>>>>>> main
 
 As we were exploring possible linear models, relating the rating systems to platform, age group, and year of creation, we found a correlation between age and Rotten Tomatoes using a linear model. This relation can be seen in our final results. 
 
