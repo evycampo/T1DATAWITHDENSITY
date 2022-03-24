@@ -321,7 +321,7 @@ labs(x="Rotten.Tomatoes", y="frequency")
 ```
 
 Here p value for IMDb and Rotten.Tomatoes is less than 0.05 for Hulu. Histogram of IMDb is right-skewed and histogram of Rotten Tomatoes is slightly Bimodal. Thus, the mean and median are not equal. IMDb and Rotten Tomatoes ratings are not normally distributed for the Hulu platform.
-### Normality Check for the Variables IMDb and Rotten Tomatoes for Prime tv
+### Normality Check for the Variables IMDb and Rotten Tomatoes for Prime TV
 ```{r results='markup'}
 shapiro.test(primetv$IMDb)
 shapiro.test(primetv$Rotten.Tomatoes)
