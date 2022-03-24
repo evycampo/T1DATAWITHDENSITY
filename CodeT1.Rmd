@@ -36,14 +36,14 @@ Additionally, several tools were found about Market shares of selected Subscript
  
 In this sense, a platform that included all the features to be reviewed was chosen for the project. The source of the dataset is Kaggle Sample Dataset where it was extracted as a CSV format. The data consists of 5367 observations and 11 variables (ID, Title, Year, Age, IMDb, Rotten Tomatoes, Netflix, Hulu, Prime Video) The dataset constitutes data of various types like numerical and categorical.
 
-## Description of the dataset
+## Description of the Dataset
 
 In order to make the dataset manageable, only 9 variables out of the 11 provided were used. In this sense, the Title variable stands for the name of the TV show; Year refers to the when the TV show was produced; Age refers to the target age group which goes from 7+, 16+, 18+, and all; IMDb is the rating for TV shows and it is structured 1 over 10 (1/10); Rotten tomatoes is the percentage of professional critic reviews that are positive for a given film or TV show and it is structured 1 over 100 (1/100). The last four variables are the streaming platforms that are being studied in this project: Netflix, Hulu, Primer Video, Disney+, and these categorical variables respond to 1 if the show is found in the platform or 0 otherwise. 
 
 The project consists of 5368 observations, where 3089 missing values correspong to variables ages (2127) and IMDb (962).
 
 
-# Understanding the data
+# Understanding the Data
 
 ## Dataset Summary
 
@@ -131,7 +131,7 @@ ggplot(data = na.omit(tvdata), aes(Age)) +
 #I am taking this graph from above since it works for this question
 ```
 
-People who are 16 and older are the most targeted age groups for the tv shows among the all steamming platfrom.
+People who are 16 and older are the most targeted age groups for  TV shows among all streaming platforms.
 
 ## Smart Question: Which year published the highest number of TV shows? 
 ```{r}
@@ -148,7 +148,7 @@ ggplot(data=tvdata, aes(Year)) +
 #I am replacing the prevous code with the graphs from above to keep the same formatting
 ```
 
-The highest number of TV shows were published in 2017 (685) and 2018 (562).And the histogram is right skewed which indicates that video publication is raising while time goes forward.
+The highest number of TV shows was published in 2017 (685) followed by  2018 (562). The histogram is right skewed, which indicates that TV shows publications are raising while time goes forward.
 
 ## Rating Systems
 
@@ -269,11 +269,11 @@ disneytv <- subset(tvdata, Disney.==1)
 ```
 
 
-## Normality check for IMDb and Rotten Tomatoes
+## Normality Check for IMDb and Rotten Tomatoes
 
 We have found the average value of IMDb and Rotten Tomatoes rating. Now, we want to check whether the samples of these two variables are normally distributed or not. If it is normally distributed the mean and median of the variable will be the same. 
 
-### Normality check for the variables IMDb and Rotten Tomatoes for Netflix
+### Normality Check for the Variables IMDb and Rotten Tomatoes for Netflix
 ```{r echo=FALSE}
 shapiro.test(netflixtv$IMDb)
 shapiro.test(netflixtv$Rotten.Tomatoes)
@@ -298,7 +298,7 @@ labs(x="Rotten.Tomatoes", y="frequency")
 
 Here, p value for IMDb and Rotten.Tomatoes is less than 0.05 for Netflix. Histogram of IMDb is right-skewed also Histogram of Rotten.Tomatoes is slightly left-skewed. Thus, The mean and median are not equal. IMDb and Rotten Tomatoes ratings are not normally distributed for the Netflix platform.
 
-### Normality check for the variables IMDb and Rotten Tomatoes for Hulu
+### Normality Check for the Variables IMDb and Rotten Tomatoes for Hulu
 ```{r}
 shapiro.test(hulutv$IMDb)
 shapiro.test(hulutv$Rotten.Tomatoes)
@@ -321,7 +321,7 @@ labs(x="Rotten.Tomatoes", y="frequency")
 ```
 
 Here p value for IMDb and Rotten.Tomatoes is less than 0.05 for Hulu. Histogram of IMDb is right-skewed and histogram of Rotten Tomatoes is slightly Bimodal. Thus, the mean and median are not equal. IMDb and Rotten Tomatoes ratings are not normally distributed for the Hulu platform.
-### Normality check for the variables IMDb and Rotten Tomatoes for Prime tv
+### Normality Check for the Variables IMDb and Rotten Tomatoes for Prime tv
 ```{r results='markup'}
 shapiro.test(primetv$IMDb)
 shapiro.test(primetv$Rotten.Tomatoes)
@@ -344,7 +344,7 @@ labs(x="Rotten.Tomatoes", y="frequency")
 
 Here p value for IMDb and Rotten.Tomatoes is less than 0.05 for Prime Videos. Histogram of IMDb is right-skewed also Histogram of Rotten.Tomatoes is Randomly distribution. IMDb and Rotten Tomatoes ratings are not normally distributed for the prime tv platform.
 
-### Normality check for the variables IMDb and Rotten Tomatoes for Disney+
+### Normality Check for the Variables IMDb and Rotten Tomatoes for Disney+
 ```{r results='markup'}
 shapiro.test(disneytv$IMDb)
 shapiro.test(disneytv$Rotten.Tomatoes)
@@ -365,7 +365,7 @@ labs(x="Rotten.Tomatoes", y="frequency")
 
 ```
 
-Here p value for IMDb and Rotten.Tomatoes is less than 0.05 for Disney+. Histogram of IMDb is slightly right-skewed and randomly distributed. also Histogram of Rotten.Tomatoes is slightly left-skewed and randomly distribution.IMDb and Rotten Tomatoes ratings are not normally distributed for the Disney+ platform.
+Here, the p-value for IMDb and Rotten Tomatoes is less than 0.05 for Disney+. Histogram of IMDb is slightly right-skewed and randomly distributed. Additionally, the histogram of Rotten Tomatoes is slightly left-skewed and randomly distributed.This leads to conclude that IMDb and Rotten Tomatoes ratings are not normally distributed for the Disney+ platform.
 
 
 ## SMART Questions 
@@ -387,11 +387,11 @@ What is the relationship between IMDb and Rotten Tomatoes?
 We had not initially considered the idea that the IMDb and Rotten Tomatoes rating systems would differ by much, but more in-depth analysis revealed that there were significant differences between how the two systems rated shows. This created an additional dimension of analysis that we did not initially anticipate.
 
 
-# Distributions and tests
+# Distributions and Tests
 
 ## Smart Question: Which streaming platform has the highest average rating (according to Rotten Tomatoes and IMDb)? 
 
-On our dataset Netflix, Hulu, Prime tv, Disney+ are four streaming platforms. To find the highest average rating according to Rotten Tomatoes and IMDb among the four streaming platforms T-test is chosen for. A t-test is a type of inferential statistic used to compare the means of two groups. By conducting t-test, average rating value (mean value) of all streaming platforms has been found. Mean values from t-test are analyzed to find the highest average rating value.  
+On our dataset, Netflix, Hulu, Prime tv, and Disney+ are our streaming platforms. To find the highest average rating according to Rotten Tomatoes and IMDb among the four streaming platforms a T-test is conducted. A t-test is a type of inferential statistic used to compare the means of two groups. By conducting t-test, average rating value (mean value) of all streaming platforms was found. Mean values from t-test are analyzed to find the highest average rating value.  
 
 
 ```{r results='markup'}
@@ -405,18 +405,15 @@ disney_rating<-t.test(disneytv$IMDb,disneytv$Rotten.Tomatoes)
 disney_rating
 ```
 
-Prime Videos has the highest average IMDb rating which is 7.152538 among the all-streaming platforms. Netflix has the highest average Rotten Tomatoes rating which is 53.559107 among the all-streaming platforms. This is how the highest average rating is found. 
-
+Prime Video has the highest average IMDb rating, which is 7.152538. This among  all streaming platforms. Netflix has the highest average Rotten Tomatoes rating which is 53.559107 among all streaming platforms.  
 
 ### SMART Question: Do the rating IMDb and Rotten Tomatoes depend on age variable? 
  
-We want to check the rating of streaming platforms on IMDb and Rotten Tomatoes are somehow related to the age of the audience. We conduct a chi-square test to check whether IMDb and Rotten Tomatoes are independent. 
+We want to check if the rating of streaming platforms on IMDb and Rotten Tomatoes are somehow related to the age of the audience. We conduct a chi-square test to check whether IMDb and Rotten Tomatoes are independent. The following are the null and alternative hypothesis.
 H0: Age and rating are independent from each other. 
-
-
 H1: Age and rating are not independent from each other. 
 
-## Independence check for Netflix platform 
+## Independence check for Netflix Platform 
 ```{r results='markup'}
 netflix2=subset(netflixtv,Age!="13+")
 
@@ -432,9 +429,9 @@ chitest2
 
 
 ```
-Since the p-value for IMDB is 0.009 AND p-value for Rotten Tomatoes0.0000000000000002, which are lower than 0.05, we need to reject the null hypothesis. Thus, IMDb and Rotten Tomatoes ratings for Netflix are not independent. Age and rating are correlated for Netflix platform. 
+Since the p-value for IMDB is 0.009, and the p-value for Rotten Tomatoes is 0.0000000000000002, which are lower than 0.05, we need to reject the null hypothesis. Thus, IMDb and Rotten Tomatoes ratings for Netflix are not independent, meaning age and rating are correlated for Netflix platform. 
 
-## Independence check for Hulu platform
+## Independence Check for Hulu Platform
 
 ```{r results='markup' }
 hulu2=subset(hulutv,Age!="13+")
@@ -447,9 +444,9 @@ chitest4 = chisq.test(contable4)
 chitest4
 
 ```
-Since the p-value for IMDb is 0.1, which is greater than 0.05, we need to accept the null hypothesis. Thus, IMDb for Hulu is independent. Age and IMDb rating are correlated for Hulu.  the p-value is 0.001, which is lower than 0.05, we need to reject the null hypothesis. Thus, Rotten Tomatoes rating for Hulu is not independent. Age and Rotten Tomatoes ratings are correlated for Hulu platform. 
+Since the p-value for IMDb is 0.1, which is greater than 0.05, we need to accept the null hypothesis. Thus, IMDb for Hulu is independent. Age and IMDb rating are correlated for Hulu. Meanwhile, with a the p-value of 0.001, which is lower than 0.05, leads us to reject the null hypothesis. Thus, Rotten Tomatoes rating for Hulu is not independent. We then conclude that Age and Rotten Tomatoes ratings are correlated for Hulu platform. 
 
-## Independence check for Prime tv platform 
+## Independence Check for Prime TV Platform 
 ```{r results='markup'}
 primetv2=subset(primetv,Age!="13+")
 contable5= table(primetv2$Age, primetv2$IMDb)
@@ -461,9 +458,9 @@ chitest6 = chisq.test(contable6)
 chitest6
 
 ```
-Since the p-value for IMDb is 0.2, which is greater than 0.05, we need to accept the null hypothesis. Thus, IMDb for primetv is independent. Age and IMDb rating are correlated for primetv.  the p-value is 0.0000002, which is lower than 0.05, we need to reject the null hypothesis. Thus, Rotten Tomatoes rating for primetv is not independent. Age and Rotten Tomatoes ratings are correlated for primetv platform.
+Since the p-value for IMDb is 0.2, which is greater than 0.05, we need to accept the null hypothesis. Thus, IMDb for Primetv is independent. On the other hand, Age and IMDb rating are correlated for primetv. Meanwhile, the p-value of 0.0000002, which is lower than 0.05, leads us to reject the null hypothesis. Thus, Rotten Tomatoes rating for Primetv is not independent, concluding Age and Rotten Tomatoes ratings are correlated for Primetv platform.
 
-## Independence check for Disney+ platform 
+## Independence Check for Disney+ Platform 
 ```{r results='markup'}
 disneytv2=subset(disneytv,Age!="13+")
 contable7= table(disneytv2$Age, disneytv2$IMDb)
@@ -475,17 +472,16 @@ chitest8= chisq.test(contable8)
 chitest8
 
 ```
-Since the p-value for IMDB is 0.000006 AND p-value for Rotten Tomatoes 0.01, which are lower than 0.05, we need to reject the null hypothesis. Thus, IMDb and Rotten Tomatoes ratings for Diseney+ are not independent. Age and rating are correlated for Disney+ platform. 
-
+Since the p-value for IMDB is 0.000006, and p-value for Rotten Tomatoes is 0.01, which are both lower than 0.05, we need to reject the null hypothesis. Thus, IMDb and Rotten Tomatoes ratings for Diseney+ are not independent, meaning Age and rating are correlated for Disney+ platform. 
 
 
 # Multiple Linear Regression Model
 
 ## SMART Question: What is the relationship between IMDb and Rotten Tomatoes?
 
-### Preparation work
+### Preparation Work
 
-#### Drop NaN data and make histograms
+#### Dropping NaN Data and Building Histograms
 
 ```{r}
 # This step is to clear data, change some string data to number and some to factor.
@@ -510,7 +506,7 @@ tvdata1$Age = factor(tvdata1$Age)
 ```
 
 To analyze the score relationships between two platforms, we need to drop the rows that have no IMDb scores and no Rotten.Tomatoes scores.
-Meanwhile, the column of X, ID, Title and Type are useless, so we also drop these columns. After we finished the preparation work, Let's have a look.
+Additionally, the column of X, ID, Title and Type are useless, so we also drop these columns. After we finished the preparation work, Let's have a look.
 ```{r}
 tvdata_rank = subset(tvdata1, (!is.na(IMDb)) & (!is.na(Rotten.Tomatoes)))
 tvdata_rank = subset(tvdata_rank, select = -c(X, ID, Title, Type))
@@ -520,13 +516,13 @@ hist(tvdata_rank$IMDb,breaks=20)
 hist(tvdata_rank$Rotten.Tomatoes,breaks=20)
 ```
 
-#### Make a pairs() plot with all the variables (quantitative and qualitative)
+#### Plotting a pairs()  with all the Variables (Quantitative and Qualitative)
 ```{r}
 loadPkg("lattice") # lattice and ggplot2 combined allow us to use the "pairs" function below 
 pairs(tvdata_rank)
 ```
 
-#### Make a corrplot() with only the numerical variables
+#### Plotting a corrplot() with Only the Numerical Variables
 ```{r message=FALSE, warning=FALSE}
 loadPkg("corrplot")
 tvdata_rank_num = subset(tvdata_rank, select = -c(Age, Netflix, Hulu, Prime.Video, Disney.))
@@ -537,10 +533,10 @@ corrplot(cor_tvdata, method = "number", type="upper")
 # corrplot.mixed(cor_tvdata)
 ```
 
-### Linear regression model build
-#### Simple linear model
+### Builsing the Linear Regression Model 
+#### Simple Linear Model
 
-By using the variable Rotten.Tomatoes only, build a linear model with 1 independent variable to predict the IMDb.
+By using the variable Rotten.Tomatoes only, we built a linear model with 1 independent variable to predict the IMDb.
 ```{r results='markup'}
 model1 = lm(IMDb ~ Rotten.Tomatoes, data=tvdata_rank)
 sum_md1 = summary(model1) # also for later use on inline codes
@@ -548,35 +544,36 @@ sum_md1
 
 xkabledply(model1, title = paste("Model (num):", format(formula(model1)) ) )
 ```
-From the results above, We can find there is a weak correlation between IMDb and Rotten.Tomatoes. And the correlation coefficient is 0.213.
+From the results above, we found there is a weak correlation between IMDb and Rotten.Tomatoes, with a the correlation coefficient of 0.213.
 
-#### A variable is added
-Because there is only a weak correlation, I try to add the other variables into the model. Below is the result:
+#### Adding a Variable
+Because there is only a weak correlation, We tried to add the other variables into the model. Below is the result:
 ```{r}
 model2 = lm(IMDb ~ ., data=tvdata_rank)
 sum_md2 = summary(model2) # also for later use on inline codes
 sum_md2
 ```
-We can find that the adjusted correlation coefficient increases, but some variables are not significant, so try to drop it.
+We can see that the adjusted correlation coefficient increases, but some variables are not significant, so try we then tried to drop it.
 
-#### Drop sparse age variables
+#### Dropping Sparse Age Observations
 ```{r}
 table(tvdata_rank$Age)
 ```
-The result is that for age13+, there are only 9 shows. Too little sample cause a large p-value. So we need to drop the factor of Age13+. We also drop Netflix, Prime.Video, Disney., because the p-values of these variables are not significant.
+As a result, we obtained that for age13+, there are only 9 shows. This is a small sample with a large p-value. In this sense,  we dropped the observations of Age13+, as well as Netflix, Prime.Video, Disney. This changes were made due to the p-values, which are not significant.
 ```{r}
 tvdata_rank_no13 <- subset(tvdata_rank, Age!="13+")
 tvdata_rank_no13 = subset(tvdata_rank_no13, select = -c(Netflix, Prime.Video, Disney.))
 ```
 
-#### Linear model with three variables
-And then me make the third model as follow.
+#### Linear Model with Three Variables
+
+From the previous results, we then made the third model as follow.
 ```{r}
 model3 = lm(IMDb ~ ., data=tvdata_rank_no13)
 sum_md3 = summary(model3) # also for later use on inline codes
 sum_md3
 ```
-We can find that all variables are significant and the adjusted r-squared is 0.246, much higher than the simple linear regression.
+We found that all variables are significant and the adjusted r-squared is 0.246, which is much higher than the simple linear regression.
 
 ```{r results='markup'}
 #vif_md3 = faraway::vif(model3)
@@ -590,9 +587,9 @@ xkablevif(model3)
 # aovresult <- anova(model1, model2, model3)
 # aovresult
 ```
-This is an Error because "models were not all fitted to the same size of dataset", so we redo the simple linear regression using tvdata_rank_no13 as model4.
+We found this error since "models were not all fitted to the same size of dataset", so we redid the simple linear regression using tvdata_rank_no13 as model4.
 
-#### Linear regression model rebuild
+#### Rebuilding Linear Regression Model 
 ```{r results='markup'}
 model4 = lm(IMDb ~ Rotten.Tomatoes, data=tvdata_rank_no13)
 sum_md4 = summary(model4) # also for later use on inline codes
@@ -610,16 +607,16 @@ sum_md5
 xkabledply(model5, title = paste("Model (num):", format(formula(model5)) ) )
 ```
 
-#### Comparation with these three models
+#### Comparison with the Three Models
 ```{r results='markup'}
 aovresult1 <- anova(model4, model3, model5)
 aovresult1
 xkabledply(aovresult1, title = "ANOVA comparison between the models")
 ```
-Add one interaction, full model seems quite nice (although it's still a weak correlation).
+With one interaction added, the full model seems quite nice, although it's still a weak correlation.
 
 
-## Final results and approved model for prediction of price
+## Final Results and Approved Model for Prediction of Price
 
 IMDb = 23.464467 + 
 -0.009186 * Year + 0.046692 * Rotten.Tomatoes + -0.209429 * Hulu
@@ -628,13 +625,13 @@ IMDb = 23.464467 +
 + (-0.453837 + -0.001010 * Rotten.Tomatoes) * Age18+ 
 + (0.609364 + -0.020359 * Rotten.Tomatoes) * Ageall
 
-## Problem and future researches
+## Problem and Future Research
 
-### Weak correlation
+### Weak Correlation
 The weak correlation between IMDb and Rotten Tomatoes means that there are other variables that we still don't know. To find other variables that influence the results can be a focus of future researches
 
-### Left-skewed IMDb
-As the IMDb histogram above is a little left-skewed, it means there are many outliers whose IMDb is very low in the dataset. While we built the model, we did not exclude the outliers as we considered these values important.
+### Left-Skewed IMDb
+As the IMDb histogram above is a little left-skewed, it means there are many outliers. While we built the model, we did not exclude the outliers as we considered these values important.
 
 # Conclusion
 
