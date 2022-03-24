@@ -652,3 +652,10 @@ As we proceeded with hypothesis analysis of different platforms and ratings, we 
 As we were exploring possible linear models, relating the rating systems to platform, age group, and year of creation, we found a correlation between age and Rotten Tomatoes using a linear model. This relation can be seen in our final results. 
 
 # References
+Kaggle, “Movies on Netflix, Prime Video, Hulu and Disney+. A collection of movies found on these streaming platforms”, Mar 1 2020, https://www.kaggle.com/ruchi798/movies-on-netflix-prime-video-hulu-and-disney
+
+Statista, 2021, “Market shares of selected Subscription video-on-demand (SVOD) services in the United States in 2020”. Mar 1 2020, https://www.statista.com/statistics/496011/usa-svod-to-tv-streaming-usage/
+
+The Verge, 2020“In a streaming wars world, JustWatch has become an essential tool” Mar 1 2020, https://www.theverge.com/2020/6/18/21291519/justwatch-streaming-search-engine-filter-app-impressions-hbo-max-disney-plus-netflix-hulu
+
+
