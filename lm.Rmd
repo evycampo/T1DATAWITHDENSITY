@@ -135,7 +135,7 @@ sum_md4
 xkabledply(model4, title = paste("Model (num):", format(formula(model4)) ) )
 # xkablevif(model4)
 ```
-
+ 
 The concepts above can be extended naturally to models with interactions between numeric and factor variables.
 ```{r results='markup'}
 model5 = lm(IMDb ~ . + Rotten.Tomatoes:Age, data=tvdata_rank_no13)
