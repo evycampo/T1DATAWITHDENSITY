@@ -1,0 +1,394 @@
+---
+title: "Group 1 Final"
+author: "Evelyn Campo, Xiao Qi, Nusrat Prithee, Roman Kosarzycki"
+date: "today"
+# date: "`r Sys.Date()`"
+output:
+  html_document:
+    code_folding: hide
+    number_sections: false
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+
+```{r init, include=FALSE}
+library(ezids)
+library(ggplot2)
+knitr::opts_chunk$set(warning = F, results = "hide", message = F)
+options(scientific=T, digits = 3) 
+```
+
+
+```{r}
+
+heartdata <- data.frame(read.csv("heart_2020_cleaned.csv"))
+
+n=10
+#heartdata <- heartdata[seq(1,nrow(heartdata),n),]
+heartdata[heartdata$HeartDisease == 'No',  "HeartDisease"] <- 0
+heartdata[heartdata$HeartDisease == 'Yes', "HeartDisease"] <- 1
+
+
+heartdata$HeartDisease <- as.factor(heartdata$HeartDisease)
+heartdata$Smoking <- as.factor(heartdata$Smoking)
+heartdata$AlcoholDrinking <- as.factor(heartdata$AlcoholDrinking)
+heartdata$Stroke <- as.factor(heartdata$Stroke)
+heartdata$DiffWalking <- as.factor(heartdata$DiffWalking)
+heartdata$Sex <- as.factor(heartdata$Sex)
+heartdata$Race <- as.factor(heartdata$Race)
+
+heartdata[heartdata$Diabetic == 'Yes (during pregnancy)', "Diabetic"] <- "Yes"
+heartdata$Diabetic <- as.factor(heartdata$Diabetic)
+
+heartdata$PhysicalActivity <- as.factor(heartdata$PhysicalActivity)
+heartdata$GenHealth <- as.factor(heartdata$GenHealth)
+heartdata$Asthma <- as.factor(heartdata$Asthma)
+heartdata$KidneyDisease <- as.factor(heartdata$KidneyDisease)
+heartdata$SkinCancer <- as.factor(heartdata$SkinCancer)
+
+heartdata$AgeCategory <- gsub(" or older","-4",as.character(heartdata$AgeCategory))
+heartdata$LoAge <- as.numeric(substr(heartdata$AgeCategory,1,2))
+heartdata$rand <- sample(0:4,size=nrow(heartdata),replace=T)
+heartdata$Age <- with(heartdata,LoAge+rand)
+heartdata <- subset(heartdata,select=-c(AgeCategory,LoAge,rand))
+
+str(heartdata)
+
+```
+
+
+
+```{r}
+prop.table( table(heartdata$HeartDisease) )
+prop.table( table(heartdata$Diabetic) )
+```
+
+```{r}
+library(ROCR)
+library(grid)
+library(broom)
+library(caret)
+library(tidyr)
+library(dplyr)
+library(scales)
+library(ggplot2)
+```
+
+```{r}
+library(ggthemr)
+library(ggthemes)
+library(gridExtra)
+library(data.table)
+```
+
+```{r}
+set.seed(4321)
+test <- createDataPartition( heartdata$HeartDisease, p = .2, list = FALSE )
+data_train <- heartdata[ -test, ]
+data_test  <- heartdata[ test, ]
+rm(heartdata)
+
+# traing logistic regression model
+# model_glm <- glm( left ~ . , data = data_train, family = binomial(logit) )
+# summary_glm <- summary(model_glm)
+```
+
+```{r}
+prop.table( table(data_train$HeartDisease) )
+prop.table( table(data_train$Race) )
+prop.table( table(data_train$Diabetic) )
+```
+
+```{r}
+model_glm <- glm( HeartDisease ~ . - Race - PhysicalActivity, data = data_train, family = binomial(logit) )
+summary_glm <- summary(model_glm)
+summary_glm
+```
+
+```{r}
+list( summary_glm$coefficient, 
+      round( 1 - ( summary_glm$deviance / summary_glm$null.deviance ), 2 ) )
+```
+
+```{r}
+# prediction
+data_train$prediction <- predict( model_glm, newdata = data_train, type = "response" )
+data_test$prediction  <- predict( model_glm, newdata = data_test , type = "response" )
+
+# distribution of the prediction score grouped by known outcome
+ggplot( data_train, aes( prediction, color = as.factor(HeartDisease) ) ) + 
+geom_density( size = 0.8 ) +
+ggtitle( "Training Set's Predicted Score" )# + 
+#scale_color_economist( name = "data", labels = c( "negative", "positive" ) )# + 
+#theme_economist()
+```
+
+```{r}
+AccuracyCutoffInfo <- function( train, test, predict, actual )
+{
+	# change the cutoff value's range as you please 
+	cutoff <- seq( .4, .8, by = .05 )
+
+	accuracy <- lapply( cutoff, function(c)
+	{
+		# use the confusionMatrix from the caret package
+	  data_train <- as.factor( as.numeric( train[[predict]] > c ) )
+		cm_train <- confusionMatrix(data_train, as.factor(train[[actual]]) )
+		data_test <- as.factor( as.numeric( test[[predict]] > c ) )
+		cm_test  <- confusionMatrix( data_test, as.factor(test[[actual]]) )
+			
+		dt <- data.table( cutoff = c,
+						  train  = cm_train$overall[["Accuracy"]],
+		 			      test   = cm_test$overall[["Accuracy"]] )
+		return(dt)
+	}) %>% rbindlist()
+
+	# visualize the accuracy of the train and test set for different cutoff value 
+	# accuracy in percentage.
+	accuracy_long <- gather( accuracy, "data", "accuracy", -1 )
+	
+	plot <- ggplot( accuracy_long, aes( cutoff, accuracy, group = data, color = data ) ) + 
+			geom_line( size = 1 ) + geom_point( size = 3 ) +
+			scale_y_continuous( label = percent ) +
+			ggtitle( "Train/Test Accuracy for Different Cutoff" )
+
+	return( list( data = accuracy, plot = plot ) )
+}
+```
+
+```{r}
+# confusionMatrix(data_train, as.factor(train[['HeartDisease']]) )
+
+# View(data_train)
+accuracy_info <- AccuracyCutoffInfo( train = data_train, test = data_test, predict = "prediction", actual = "HeartDisease" )
+```
+
+
+```{r}
+accuracy_info$plot
+```
+
+```{r}
+ConfusionMatrixInfo <- function( data, predict, actual, cutoff )
+{	
+	# extract the column ;
+	# relevel making 1 appears on the more commonly seen position in 
+	# a two by two confusion matrix	
+	predict <- data[[predict]]
+	actual  <- relevel( as.factor( data[[actual]] ), "1" )
+	
+	result <- data.table( actual = actual, predict = predict )
+
+	# calculating each pred falls into which category for the confusion matrix
+	result[ , type := ifelse( predict >= cutoff & actual == 1, "TP",
+					  ifelse( predict >= cutoff & actual == 0, "FP", 
+					  ifelse( predict <  cutoff & actual == 1, "FN", "TN" ) ) ) %>% as.factor() ]
+
+	# jittering : can spread the points along the x axis 
+	plot <- ggplot( result, aes( actual, predict, color = type ) ) + 
+			geom_violin( fill = "white", color = NA ) +
+			geom_jitter( shape = 1 ) + 
+			geom_hline( yintercept = cutoff, color = "blue", alpha = 0.6 ) + 
+			scale_y_continuous( limits = c( 0, 1 ) ) + 
+			scale_color_discrete( breaks = c( "TP", "FN", "FP", "TN" ) ) + # ordering of the legend 
+			guides( col = guide_legend( nrow = 2 ) ) + # adjust the legend to have two rows  
+			ggtitle( sprintf( "Confusion Matrix with Cutoff at %.2f", cutoff ) )
+
+	return( list( data = result, plot = plot ) )
+}
+
+cm_info <- ConfusionMatrixInfo( data = data_test, predict = "prediction", 
+                                actual = "HeartDisease", cutoff = .55 )
+#ggthemr("flat")
+cm_info$plot
+```
+
+```{r}
+prop.table( table( data_test$HeartDisease ) )
+```
+
+```{r}
+cm_info$data
+```
+
+```{r}
+ROCInfo <- function( data, predict, actual, cost.fp, cost.fn )
+{
+	# calculate the values using the ROCR library
+	# true positive, false postive 
+	pred <- prediction( data[[predict]], data[[actual]] )
+	perf <- performance( pred, "tpr", "fpr" )
+	roc_dt <- data.frame( fpr = perf@x.values[[1]], tpr = perf@y.values[[1]] )
+
+	# cost with the specified false positive and false negative cost 
+	# false postive rate * number of negative instances * false positive cost + 
+	# false negative rate * number of positive instances * false negative cost
+	cost <- perf@x.values[[1]] * cost.fp * sum( data[[actual]] == 0 ) + 
+			( 1 - perf@y.values[[1]] ) * cost.fn * sum( data[[actual]] == 1 )
+
+	cost_dt <- data.frame( cutoff = pred@cutoffs[[1]], cost = cost )
+
+	# optimal cutoff value, and the corresponding true positive and false positive rate
+	best_index  <- which.min(cost)
+	best_cost   <- cost_dt[ best_index, "cost" ]
+	best_tpr    <- roc_dt[ best_index, "tpr" ]
+	best_fpr    <- roc_dt[ best_index, "fpr" ]
+	best_cutoff <- pred@cutoffs[[1]][ best_index ]
+	
+	# area under the curve
+	auc <- performance( pred, "auc" )@y.values[[1]]
+
+	# normalize the cost to assign colors to 1
+	normalize <- function(v) ( v - min(v) ) / diff( range(v) )
+	
+	# create color from a palette to assign to the 100 generated threshold between 0 ~ 1
+	# then normalize each cost and assign colors to it, the higher the blacker
+	# don't times it by 100, there will be 0 in the vector
+	col_ramp <- colorRampPalette( c( "green", "orange", "red", "black" ) )(100)   
+	col_by_cost <- col_ramp[ ceiling( normalize(cost) * 99 ) + 1 ]
+
+	roc_plot <- ggplot( roc_dt, aes( fpr, tpr ) ) + 
+				geom_line( color = rgb( 0, 0, 1, alpha = 0.3 ) ) +
+				geom_point( color = col_by_cost, size = 4, alpha = 0.2 ) + 
+				geom_segment( aes( x = 0, y = 0, xend = 1, yend = 1 ), alpha = 0.8, color = "royalblue" ) + 
+				labs( title = "ROC", x = "False Postive Rate", y = "True Positive Rate" ) +
+				geom_hline( yintercept = best_tpr, alpha = 0.8, linetype = "dashed", color = "steelblue4" ) +
+				geom_vline( xintercept = best_fpr, alpha = 0.8, linetype = "dashed", color = "steelblue4" )				
+
+	cost_plot <- ggplot( cost_dt, aes( cutoff, cost ) ) +
+				 geom_line( color = "blue", alpha = 0.5 ) +
+				 geom_point( color = col_by_cost, size = 4, alpha = 0.5 ) +
+				 ggtitle( "Cost" ) +
+				 scale_y_continuous( labels = comma ) +
+				 geom_vline( xintercept = best_cutoff, alpha = 0.8, linetype = "dashed", color = "steelblue4" )	
+
+	# the main title for the two arranged plot
+	sub_title <- sprintf( "Cutoff at %.2f - Total Cost = %d, AUC = %.3f", 
+						  best_cutoff, best_cost, auc )
+	
+	# arranged into a side by side plot
+	plot <- arrangeGrob( roc_plot, cost_plot, ncol = 2, 
+						 top = textGrob( sub_title, gp = gpar( fontsize = 16, fontface = "bold" ) ) )
+	
+	return( list( plot 		  = plot, 
+				  cutoff 	  = best_cutoff, 
+				  totalcost   = best_cost, 
+				  auc         = auc,
+				  sensitivity = best_tpr, 
+				  specificity = 1 - best_fpr ) )
+}
+```
+
+```{r}
+
+cost_fp <- 100
+cost_fn <- 500
+roc_info <- ROCInfo( data = cm_info$data, predict = "predict", 
+                     actual = "actual", cost.fp = cost_fp, cost.fn = cost_fn )
+grid.draw(roc_info$plot)
+```
+
+```{r}
+data = cm_info$data
+predict = "predict"
+actual = "actual"
+cost.fp = cost_fp
+cost.fn = cost_fn
+
+pred <- prediction( data[[predict]], data[[actual]] )
+perf <- performance( pred, "tpr", "fpr" )
+roc_dt <- data.frame( fpr = perf@x.values[[1]], tpr = perf@y.values[[1]] )
+
+# cost with the specified false positive and false negative cost 
+# false postive rate * number of negative instances * false positive cost + 
+# false negative rate * number of positive instances * false negative cost
+cost <- perf@x.values[[1]] * cost.fp * sum( data[[actual]] == 0 ) + 
+		( 1 - perf@y.values[[1]] ) * cost.fn * sum( data[[actual]] == 1 )
+
+cost_dt <- data.frame( cutoff = pred@cutoffs[[1]], cost = cost )
+
+# optimal cutoff value, and the corresponding true positive and false positive rate
+best_index  <- which.min(cost)
+best_cost   <- cost_dt[ best_index, "cost" ]
+best_tpr    <- roc_dt[ best_index, "tpr" ]
+best_fpr    <- roc_dt[ best_index, "fpr" ]
+best_cutoff <- pred@cutoffs[[1]][ best_index ]
+
+# area under the curve
+auc <- performance( pred, "auc" )@y.values[[1]]
+
+# normalize the cost to assign colors to 1
+normalize <- function(v) ( v - min(v) ) / diff( range(v) )
+
+# create color from a palette to assign to the 100 generated threshold between 0 ~ 1
+# then normalize each cost and assign colors to it, the higher the blacker
+# don't times it by 100, there will be 0 in the vector
+col_ramp <- colorRampPalette( c( "green", "orange", "red", "black" ) )(100)   
+col_by_cost <- col_ramp[ ceiling( normalize(cost) * 99 ) + 1 ]
+```
+
+```{r}
+ggplot( roc_dt, aes( fpr, tpr ) ) + 
+			geom_line( color = rgb( 0, 0, 1, alpha = 0.3 ) ) +
+			geom_point( color = col_by_cost, size = 4, alpha = 0.2 ) + 
+			geom_segment( aes( x = 0, y = 0, xend = 1, yend = 1 ), alpha = 0.8, color = "royalblue" ) + 
+			labs( title = "ROC", x = "False Postive Rate", y = "True Positive Rate" ) +
+			geom_hline( yintercept = best_tpr, alpha = 0.8, linetype = "dashed", color = "steelblue4" ) +
+			geom_vline( xintercept = best_fpr, alpha = 0.8, linetype = "dashed", color = "steelblue4" )				
+
+ggplot( cost_dt, aes( cutoff, cost ) ) +
+			 geom_line( color = "blue", alpha = 0.5 ) +
+			 geom_point( color = col_by_cost, size = 4, alpha = 0.5 ) +
+			 ggtitle( "Cost" ) +
+			 scale_y_continuous( labels = comma ) +
+			 geom_vline( xintercept = best_cutoff, alpha = 0.8, linetype = "dashed", color = "steelblue4" )	
+
+# the main title for the two arranged plot
+sub_title <- sprintf( "Cutoff at %.2f - Total Cost = %d, AUC = %.3f", 
+					  best_cutoff, best_cost, auc )
+
+# arranged into a side by side plot
+arrangeGrob( roc_plot, cost_plot, ncol = 2, 
+					 top = textGrob( sub_title, gp = gpar( fontsize = 16, fontface = "bold" ) ) )
+
+```
+
+```{r}
+roc_info$cutoff
+```
+
+```{r}
+cm_info <- ConfusionMatrixInfo( data = data_test, predict = "prediction", 
+                                actual = "HeartDisease", cutoff = roc_info$cutoff )
+#ggthemr("flat")
+cm_info$plot
+```
+
+```{r}
+coefficient <- tidy(model_glm)[ , c( "term", "estimate", "statistic" ) ]
+
+# transfrom the coefficient to be in probability format 
+coefficient$estimate <- exp( coefficient$estimate )
+coefficient
+```
+
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
+
+```{r}
+
+```
+
