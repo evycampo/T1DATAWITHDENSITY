@@ -57,26 +57,33 @@ str(heartdata)
 
 ###Chi-Square Test
 
-
-
-**Does the Heat Disease effect on Gen Health??**
-```{r, results="markup"}
-contable1= table(heartdata$HeartDisease,heartdata$GenHealth)
-ezids::xkabledply(contable1, title="Contingency table for Heart Disease  vs Gen Health ")
-chitest1 = chisq.test(contable1)
-chitest1
-```
-**Is heart disease related to gender??**
+**Does the data support that race very much affects heart disease???**
 
 ```{r, results="markup"}
-contable2= table(heartdata$HeartDisease,heartdata$Sex)
-
-ezids::xkabledply(contable2, title="Contingency table for Heart Disease  vs Gender ")
-chitest1 = chisq.test(contable2)
-chitest1
-
+racetable = xtabs(~ Race+HeartDisease, data =heartdata )
+racetable
+chitest_race = chisq.test(racetable)
+chitest_race
 ```
 
+**Does the data support that Heat Disease effect on Gen Health??**
+```{r, results="markup"}
+gentable= table(heartdata$HeartDisease,heartdata$GenHealth)
+ezids::xkabledply(gentable, title="Contingency table for Heart Disease  vs Gen Health ")
+chitest_gen = chisq.test(gentable)
+chitest_gen
+```
+**Is heart disease data related to gender??**
+
+```{r, results="markup"}
+sextable= table(heartdata$HeartDisease,heartdata$Sex)
+
+ezids::xkabledply(sextable, title="Contingency table for Heart Disease  vs Gender ")
+chitest_sex = chisq.test(sextable)
+chitest_sex
+
+```
+###T-test
 **What is the average age people are suffering from heart disease??**
 ```{r, results="markup"}
  heart_disease_on=subset(heartdata,HeartDisease=="Yes")
@@ -86,7 +93,6 @@ ttest_age
 ```
 
 ###Test For Association
-**Determine if the  mental health physical health, alcohol drinking, smoking variables are normal.** 
 
 **What variables affect mental health physical health? In particular, does alcohol drinking, smoking**
 ```{r results='markup'}
@@ -102,5 +108,3 @@ phyhealth_smoke
 phyhealth_drinking<-cor.test(heartdata$PhysicalHealth,as.numeric(heartdata$AlcoholDrinking), method="pearson")
 phyhealth_drinking
 ```  
-
-
