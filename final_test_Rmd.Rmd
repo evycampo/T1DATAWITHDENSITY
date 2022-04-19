@@ -107,4 +107,15 @@ phyhealth_smoke<-cor.test(heartdata$PhysicalHealth,as.numeric(heartdata$Smoking)
 phyhealth_smoke
 phyhealth_drinking<-cor.test(heartdata$PhysicalHealth,as.numeric(heartdata$AlcoholDrinking), method="pearson")
 phyhealth_drinking
-```  
+```
+
+###Feature Selection
+### Sequential Replacement seqrep 
+**What variables affect instances of heart disease?**
+```{r results='markup'}
+reg.seqrep <- regsubsets(HeartDisease~., data = heartdata, nvmax = 10, nbest = 2 , method = "seqrep")
+plot(reg.seqrep, scale = "adjr2", main = "Adjusted R^2")
+plot(reg.seqrep, scale = "bic", main = "BIC")
+plot(reg.seqrep, scale = "Cp", main = "Cp")
+
+```
