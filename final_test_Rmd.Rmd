@@ -57,7 +57,7 @@ str(heartdata)
 
 ###Chi-Square Test
 
-**What variables affect mental health physical health? In particular, does alcohol drinking, smoking**
+
 
 **Does the Heat Disease effect on Gen Health??**
 ```{r, results="markup"}
@@ -80,19 +80,27 @@ chitest1
 **What is the average age people are suffering from heart disease??**
 ```{r, results="markup"}
  heart_disease_on=subset(heartdata,HeartDisease=="Yes")
+str(heart_disease_on)
 ttest_age <- t.test(heart_disease_on$Age)
 ttest_age
 ```
 
-```{r, results="markup" }
-library(ggplot2)
-ggplot(data=heart_disease_on,aes(x=Age,)) + 
-geom_histogram(col="red", 
-               fill="green", 
-               alpha = .7) + 
-labs(title="Age of suffering histogram") +
-labs(x="Age", y="frequency")
-```
+###Test For Association
+**Determine if the  mental health physical health, alcohol drinking, smoking variables are normal.** 
+
 **What variables affect mental health physical health? In particular, does alcohol drinking, smoking**
+```{r results='markup'}
+menhealth_smoke<-cor.test(heartdata$MentalHealth,as.numeric(heartdata$Smoking), method="pearson")
+menhealth_smoke
+menhealth_drinking<-cor.test(heartdata$MentalHealth,as.numeric(heartdata$AlcoholDrinking), method="pearson")
+menhealth_drinking
+```  
+
+```{r results='markup'}
+phyhealth_smoke<-cor.test(heartdata$PhysicalHealth,as.numeric(heartdata$Smoking), method="pearson")
+phyhealth_smoke
+phyhealth_drinking<-cor.test(heartdata$PhysicalHealth,as.numeric(heartdata$AlcoholDrinking), method="pearson")
+phyhealth_drinking
+```  
 
 
