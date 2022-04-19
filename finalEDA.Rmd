@@ -1,0 +1,199 @@
+---
+title: "Group 1 Final"
+author: "Evelyn Campo, Xiao Qi, Nusrat Prithee, Roman Kosarzycki"
+date: "today"
+# date: "`r Sys.Date()`"
+output:
+  html_document:
+    code_folding: hide
+    number_sections: false
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+
+```{r init, include=FALSE}
+library(ezids)
+library(ggplot2)
+knitr::opts_chunk$set(warning = F, results = "hide", message = F)
+options(scientific=T, digits = 3) 
+```
+
+```{r}
+GeomSplitViolin <- ggproto("GeomSplitViolin", GeomViolin, draw_group = function(self, data, ..., draw_quantiles = NULL){
+  data <- transform(data, xminv = x - violinwidth * (x - xmin), xmaxv = x + violinwidth * (xmax - x))
+  grp <- data[1,'group']
+  newdata <- plyr::arrange(transform(data, x = if(grp%%2==1) xminv else xmaxv), if(grp%%2==1) y else -y)
+  newdata <- rbind(newdata[1, ], newdata, newdata[nrow(newdata), ], newdata[1, ])
+  newdata[c(1,nrow(newdata)-1,nrow(newdata)), 'x'] <- round(newdata[1, 'x']) 
+  if (length(draw_quantiles) > 0 & !scales::zero_range(range(data$y))) {
+    stopifnot(all(draw_quantiles >= 0), all(draw_quantiles <= 
+                                              1))
+    quantiles <- create_quantile_segment_frame(data, draw_quantiles)
+    aesthetics <- data[rep(1, nrow(quantiles)), setdiff(names(data), c("x", "y")), drop = FALSE]
+    aesthetics$alpha <- rep(1, nrow(quantiles))
+    both <- cbind(quantiles, aesthetics)
+    quantile_grob <- GeomPath$draw_panel(both, ...)
+    ggplot2:::ggname("geom_split_violin", grobTree(GeomPolygon$draw_panel(newdata, ...), quantile_grob))
+  }
+  else {
+    ggplot2:::ggname("geom_split_violin", GeomPolygon$draw_panel(newdata, ...))
+  }
+})
+
+geom_split_violin <- function (mapping = NULL, data = NULL, stat = "ydensity", position = "identity", ..., draw_quantiles = NULL, trim = TRUE, scale = "area", na.rm = FALSE, show.legend = NA, inherit.aes = TRUE) {
+  layer(data = data, mapping = mapping, stat = stat, geom = GeomSplitViolin, position = position, show.legend = show.legend, inherit.aes = inherit.aes, params = list(trim = trim, scale = scale, draw_quantiles = draw_quantiles, na.rm = na.rm, ...))
+}
+```
+
+```{r}
+
+heartdata <- data.frame(read.csv("heart_2020_cleaned.csv"))
+
+n=10
+#heartdata <- heartdata[seq(1,nrow(heartdata),n),]
+
+heartdata$HeartDisease <- as.factor(heartdata$HeartDisease)
+heartdata$Smoking <- as.factor(heartdata$Smoking)
+heartdata$AlcoholDrinking <- as.factor(heartdata$AlcoholDrinking)
+heartdata$Stroke <- as.factor(heartdata$Stroke)
+heartdata$DiffWalking <- as.factor(heartdata$DiffWalking)
+heartdata$Sex <- as.factor(heartdata$Sex)
+heartdata$Race <- gsub("American Indian/Alaskan Native","Native",heartdata$Race)
+heartdata$Race <- factor(heartdata$Race,levels=c("White","Hispanic","Black","Asian","Native","Other"))
+heartdata$Diabetic <- gsub("No, borderline diabetes","Borderline",heartdata$Diabetic)
+heartdata$Diabetic <- factor(heartdata$Diabetic,levels=c("No","Borderline","Yes (during pregnancy)","Yes"))
+heartdata$PhysicalActivity <- as.factor(heartdata$PhysicalActivity)
+heartdata$GenHealth <- factor(heartdata$GenHealth,levels=c("Poor","Fair","Good","Very good","Excellent"))
+heartdata$Asthma <- as.factor(heartdata$Asthma)
+heartdata$KidneyDisease <- as.factor(heartdata$KidneyDisease)
+heartdata$SkinCancer <- as.factor(heartdata$SkinCancer)
+
+heartdata$AgeCategory <- gsub(" or older","-4",as.character(heartdata$AgeCategory))
+heartdata$LoAge <- as.numeric(substr(heartdata$AgeCategory,1,2))
+heartdata$rand <- sample(0:4,size=nrow(heartdata),replace=T)
+heartdata$Age <- with(heartdata,LoAge+rand)
+heartdata <- subset(heartdata,select=-c(AgeCategory,LoAge,rand))
+
+posdis <- subset(heartdata,HeartDisease=="Yes")
+negdis <- subset(heartdata,HeartDisease=="No")
+
+str(heartdata)
+
+```
+
+```{r}
+# Histograms of numerical variables
+
+ggplot(data=heartdata, aes(x=BMI))+geom_histogram(bins=30)
+ggplot(data=heartdata, aes(x=PhysicalHealth))+geom_histogram(bins=30)
+ggplot(data=heartdata, aes(x=MentalHealth))+geom_histogram(bins=30)
+ggplot(data=heartdata, aes(x=SleepTime))+geom_histogram(bins=30)
+ggplot(data=heartdata, aes(x=Age))+geom_histogram(bins=30)
+
+```
+
+```{r}
+# Comparison of factors
+
+print("Heart disease:")
+hea<-table(heartdata$HeartDisease)
+hea
+#No heart disease
+hea[1]/(hea[1]+hea[2])
+#Heart disease
+hea[2]/(hea[1]+hea[2])
+
+print("Smoking and heart disease:")
+smo<-table(heartdata$HeartDisease,heartdata$Smoking)
+smo
+#No smoking, no heart disease
+smo[1]
+smo[1]/(smo[1]+smo[2])
+#No smoking, heart disease
+smo[2]
+smo[2]/(smo[1]+smo[2])
+#Smoking, no heart disease
+smo[3]
+smo[3]/(smo[3]+smo[4])
+#Smoking, heart disease
+smo[4]
+smo[4]/(smo[3]+smo[4])
+
+print("Drinking and heart disease:")
+dri<-table(heartdata$HeartDisease,heartdata$AlcoholDrinking)
+dri
+#No drinking, no heart disease
+dri[1]
+dri[1]/(dri[1]+dri[2])
+#No drinking, heart disease
+dri[2]
+dri[2]/(dri[1]+dri[2])
+#Drinking, no heart disease
+dri[3]
+dri[3]/(dri[3]+dri[4])
+#Drinking, heart disease
+dri[4]
+dri[4]/(dri[3]+dri[4])
+
+print("Diabetes and heart disease")
+dia<-table(heartdata$Diabetic,heartdata$HeartDisease)
+dia
+
+
+```
+
+```{r}
+# Heart disease and Age
+
+ggplot(heartdata, aes(x=HeartDisease, y=Age, fill=HeartDisease)) + geom_boxplot(outlier.shape = NA)+ggtitle("Heart Disease by Age")
+
+```
+
+```{r}
+# Heart disease and BMI
+
+ggplot(heartdata, aes(x=HeartDisease, y=BMI, fill=HeartDisease)) + geom_boxplot(outlier.shape = NA)+ggtitle("Heart Disease by BMI")+ylim(15,45)
+
+```
+
+```{r}
+# Heart disease versus gen health
+
+ggplot(posdis, aes(x=GenHealth,fill=GenHealth)) + geom_bar()+ggtitle("General Health for People With Heart Disease")
+
+ggplot(negdis, aes(x=GenHealth,fill=GenHealth)) + geom_bar()+ggtitle("General Health for People Without Heart Disease")
+
+ggplot(heartdata, aes(x=GenHealth)) + geom_bar(aes(fill=HeartDisease))+ggtitle("General Health for People With and Without Heart Disease")
+
+ggplot(heartdata,aes(GenHealth,Age,fill=HeartDisease))+geom_split_violin()
+
+```
+
+```{r}
+# BMI and health
+
+ggplot(heartdata, aes(x=GenHealth, y=BMI, fill=GenHealth)) + geom_boxplot(outlier.shape = NA)+ggtitle("General Health by BMI")+ylim(15,45)
+
+```
+
+```{r}
+# Race
+
+ggplot(heartdata, aes(x=Race)) + geom_bar(aes(fill=HeartDisease))+ggtitle("Race of People With and Without Heart Disease")
+
+ggplot(heartdata,aes(Race,Age,fill=HeartDisease))+geom_split_violin()
+
+rac <- table(heartdata$HeartDisease,heartdata$Race)
+Race <- c("White","Hispanic","Black","Asian","Native","Other")
+Percentage <- c(100*rac[2]/(rac[1]+rac[2]),100*rac[4]/(rac[3]+rac[4]),100*rac[6]/(rac[5]+rac[6]),100*rac[8]/(rac[7]+rac[8]),100*rac[10]/(rac[11]+rac[10]),100*rac[12]/(rac[11]+rac[12]))
+racedata <- data.frame(Race,Percentage)
+racedata$Race <- factor(racedata$Race,levels=c("White","Hispanic","Black","Asian","Native","Other"))
+
+ggplot(racedata,aes(x=Race,y=Percentage,fill=Race))+geom_bar(stat="identity")+ggtitle("Percentage of People With Heart Disease")
+
+```
+
