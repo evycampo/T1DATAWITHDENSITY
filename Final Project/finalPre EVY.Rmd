@@ -1,5 +1,9 @@
 ---
+<<<<<<< HEAD
 title: "Group 1 Final"
+=======
+title: "Group 1 Final Project"
+>>>>>>> main
 author: "Evelyn Campo, Xiao Qi, Nusrat Prithee, Roman Kosarzycki"
 date: "today"
 # date: "`r Sys.Date()`"
@@ -54,30 +58,119 @@ str(heartdata)
 ```
 
 
-
-
 Classification and Regression Trees
-```{r}
-shuffle_heartdata <- sample(1:nrow(heartdata))
-head(shuffle_heartdata)
-```
-```{r}
-heart <- heartdata[shuffle_heartdata, ]
-head(heart)
-```
 
 ```{r}
+#Creating new heartdata DF with different name
 library(dplyr)
-# Drop variables
-clean_heart <- heart %>% 
-  select(-c(HeartDisease, BMI, Stroke, DiffWalking, Race, Diabetic,PhysicalActivity, GenHealth, SleepTime, Asthma, KidneyDisease, SkinCancer, Age)) %>% 
-#Convert to factor level
-	mutate(AlcoholDrinking = factor(AlcoholDrinking, levels = c('No', 'Yes'), labels = c('No', 'Yes')),
-	Smoking = factor(Smoking, levels = c('No', 'Yes'), labels = c('No', 'Yes'))) %>%
-na.omit()
+clean_heart<-heartdata
 
-glimpse(clean_heart)
 ```
+
+```{r}
+#Assigning ifelse logic to Mental Health. See if the person is not feeling ok in 15 days or more during the month
+HighMH = ifelse(clean_heart$MentalHealth>=15, "No", "Yes")
+clean_heart = data.frame(clean_heart, HighMH)
+```
+
+```{r}
+#Selecting only the meaningful columns for prediction
+clean_heart <- select(clean_heart, HighMH, Smoking, Sex, AlcoholDrinking, PhysicalActivity)
+clean_heart <- mutate(clean_heart, HighMH=factor(HighMH), Smoking=factor(Smoking), Sex=factor(Sex), PhysicalActivity=factor(PhysicalActivity))
+```
+
+```{r}
+library('rpart.plot')
+create_train_test <- function(data, size = 0.8, train = TRUE) {
+n_row = nrow(data)
+total_row = size * n_row
+train_sample = c(1: total_row)
+if (train == TRUE) {
+return (data[train_sample, ])
+  } else {
+return (data[-train_sample, ])
+  }
+}
+```
+
+
+```{r}
+#Splitting clean_heart into training and testing data
+library(caTools)
+set.seed(123)
+
+data_train <- create_train_test(clean_heart, 0.8, train = TRUE)
+data_test <- create_train_test(clean_heart, 0.8, train = FALSE)
+dim(data_train)
+dim(data_test)
+
+#sample = sample.split(clean_heart$MentalHealth, SplitRatio = .70)
+#train = subset(clean_heart, sample==TRUE)
+#test = subset(clean_heart, sample==FALSE)
+
+```
+
+```{r}
+#Training the Decision Tree Classifier
+tree <- rpart(Smoking ~., data=data_train, method="class", control = rpart.control(minsplit = 1, minbucket = 1, cp = 0.001))
+print(tree)
+```
+```{r}
+summary(tree)
+```
+
+```{r}
+library(rpart)				        # Popular decision tree algorithm
+library(rattle)					# Fancy tree plot
+library(rpart.plot)				# Enhanced tree plots
+library(RColorBrewer)				# Color selection for fancy tree plot
+library(party)					# Alternative decision tree algorithm
+library(partykit)				# Convert rpart object to BinaryTree
+library(caret)	
+plot(tree, uniform=TRUE, main="Classification Tree for Smoking")
+text(tree, use.n=TRUE, all=TRUE, cex=.8)
+```
+
+```{r}
+col <- c("#FD8D3C", "#FD8D3C", "#FD8D3C", "#BCBDDC",
+         "#FDD0A2", "#FD8D3C", "#BCBDDC")
+prp(tree, type=2, extra=104, nn=TRUE, ni=TRUE, fallen.leaves=TRUE, 
+    faclen=0, varlen=0, shadow.col="grey", branch.lty=3)
+
+#we can alsos change extra=104
+```
+
+```{r}
+library("RColorBrewer")
+fancyRpartPlot(tree, main="Classification Tree for Smoking", palettes="PuRd", type=2)
+
+```
+
+```{r}
+#I created set of rules from the decision tree to see the probabilities per rule
+rpart.rules(tree)
+#asRules(tree)
+```
+```{r}
+
+
+```
+
+
+
+```{r}
+#Confusion Matrix for evaluating the model
+prp(tree)
+```
+
+
+
+
+
+
+####------------------------###############################
+
+
 
 
 ```{r}
@@ -119,8 +212,8 @@ clean_heart[clean_heart=="30"]<-"21-30"
 ```
 
 ```{r}
-clean_heart$MentalHealth <- as.factor(clean_heart$MentalHealth)
-clean_heart$PhysicalHealth <- as.factor(clean_heart$PhysicalHealth) 
+#clean_heart$MentalHealth <- as.factor(clean_heart$MentalHealth)
+#clean_heart$PhysicalHealth <- as.factor(clean_heart$PhysicalHealth) 
 ```
 
 
@@ -314,9 +407,6 @@ return (data[-train_sample, ])
 }
 ```
 
-```{r}
-clean_heart <- select(clean_heart, High, Smoking, Sex, AlcoholDrinking, PhysicalActivity)
-```
 
 ```{r}
 #Splitting into traning and testing data
@@ -371,8 +461,9 @@ prp(tree)
 ######################
 
 ```{r}
-High = ifelse(clean_heart$MentalHealth>=15, "No", "Yes")
-clean_heart = data.frame(clean_heart, High)
+HighMH = ifelse(clean_heart$MentalHealth>=15, "No", "Yes")
+LowPHA = ifelse(clean_heart$PhysicalActivity>=15, "No", "Yes")
+clean_heart = data.frame(clean_heart, High, LowPHA)
 ```
 
 ```{r}
@@ -395,5 +486,135 @@ text(tree.clean_heart, pretty = 0)
 ```
 
 
+
+
+
+
+#####!!!!!!!!!!!!!!!!!!!!!!!!!!!################3
+Classification and Regression Trees
+
+```{r}
+#Creating new heartdata DF with different name
+library(dplyr)
+clean_heart1<-heartdata
+
+```
+
+```{r}
+clean_heart1$SleepTime=as.numeric(clean_heart1$SleepTime)
+clean_heart1$Age=as.numeric(clean_heart1$Age)
+
+```
+
+```{r}
+#Assigning ifelse logic to Mental Health. See if the person is not feeling ok in 15 days or more during the month
+AvSleep = ifelse(clean_heart1$SleepTime>=7, "No", "Yes")
+clean_heart1 = data.frame(clean_heart1, AvSleep)
+```
+
+```{r}
+#Assigning ifelse logic to Mental Health. See if the person is not feeling ok in 15 days or more during the month
+Age30Plus = ifelse(clean_heart1$Age>=30, "No", "Yes")
+clean_heart1 = data.frame(clean_heart1, Age30Plus)
+```
+
+
+```{r}
+#Selecting only the meaningful columns for prediction
+clean_heart1 <- select(clean_heart1, Smoking, Age30Plus, AvSleep, Race, HeartDisease, PhysicalActivity)
+clean_heart1 <- mutate(clean_heart1, Race=factor(Race), PhysicalActivity=factor(PhysicalActivity), Smoking=factor(Smoking))
+```
+
+```{r}
+library('rpart.plot')
+create_train_test1 <- function(data, size = 0.8, train = TRUE) {
+n_row = nrow(data)
+total_row = size * n_row
+train_sample = c(1: total_row)
+if (train == TRUE) {
+return (data[train_sample, ])
+  } else {
+return (data[-train_sample, ])
+  }
+}
+```
+
+
+```{r}
+#Splitting clean_heart into training and testing data
+library(caTools)
+set.seed(123)
+
+data_train1 <- create_train_test1(clean_heart1, 0.8, train = TRUE)
+data_test1 <- create_train_test1(clean_heart1, 0.8, train = FALSE)
+dim(data_train1)
+dim(data_test1)
+
+#sample = sample.split(clean_heart$MentalHealth, SplitRatio = .70)
+#train = subset(clean_heart, sample==TRUE)
+#test = subset(clean_heart, sample==FALSE)
+
+```
+
+```{r}
+#Training the Decision Tree Classifier
+tree1 <- rpart(Smoking ~., data=data_train1, method="class", control = rpart.control(minsplit = 1, minbucket = 1, cp = 0.001))
+print(tree1)
+```
+
+```{r}
+summary(tree1)
+```
+
+```{r}
+library(rpart)				        # Popular decision tree algorithm
+library(rattle)					# Fancy tree plot
+library(rpart.plot)				# Enhanced tree plots
+library(RColorBrewer)				# Color selection for fancy tree plot
+library(party)					# Alternative decision tree algorithm
+library(partykit)				# Convert rpart object to BinaryTree
+library(caret)	
+plot(tree1, uniform=TRUE, main="Classification Tree for Age")
+text(tree1, use.n=TRUE, all=TRUE, cex=.8)
+```
+
+```{r}
+col <- c("#FD8D3C", "#FD8D3C", "#FD8D3C", "#BCBDDC",
+         "#FDD0A2", "#FD8D3C", "#BCBDDC")
+prp(tree1, type=2, extra=104, nn=TRUE, ni=TRUE, fallen.leaves=TRUE, 
+    faclen=0, varlen=0, shadow.col="grey", branch.lty=3)
+
+#we can alsos change extra=104
+```
+
+```{r}
+library("RColorBrewer")
+fancyRpartPlot(tree1, main="Classification Tree for Smoking", palettes="PuRd", type=2)
+
+```
+
+```{r}
+#I created set of rules from the decision tree to see the probabilities per rule
+rpart.rules(tree1)
+#asRules(tree)
+```
+```{r, include=T}
+loadPkg("caret") 
+cm = confusionMatrix( predict(tree1, type = "class"), reference = tree1[, "tree1"] )
+print('Overall: ')
+cm$overall
+print('Class: ')
+cm$byClass
+unloadPkg("caret")
+```
+
+```
+
+
+
+```{r}
+#Confusion Matrix for evaluating the model
+prp(tree)
+```
 
 
