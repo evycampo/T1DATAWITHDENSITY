@@ -1,0 +1,399 @@
+---
+title: "Group 1 Final Project"
+author: "Evelyn Campo, Xiao Qi, Nusrat Prithee, Roman Kosarzycki"
+date: "today"
+# date: "`r Sys.Date()`"
+output:
+  html_document:
+    code_folding: hide
+    number_sections: false
+    toc: yes
+    toc_depth: 3
+    toc_float: yes
+  pdf_document:
+    toc: yes
+    toc_depth: '3'
+---
+
+```{r init, include=FALSE}
+library(ezids)
+library(ggplot2)
+knitr::opts_chunk$set(warning = F, results = "hide", message = F)
+options(scientific=T, digits = 3) 
+```
+
+
+```{r}
+
+heartdata <- data.frame(read.csv("heart_2020_cleaned.csv"))
+
+#heartdata <- heartdata[seq(1,nrow(heartdata),n),]
+
+heartdata$HeartDisease <- as.factor(heartdata$HeartDisease)
+heartdata$Smoking <- as.factor(heartdata$Smoking)
+heartdata$AlcoholDrinking <- as.factor(heartdata$AlcoholDrinking)
+heartdata$Stroke <- as.factor(heartdata$Stroke)
+heartdata$DiffWalking <- as.factor(heartdata$DiffWalking)
+heartdata$Sex <- as.factor(heartdata$Sex)
+heartdata$Race <- as.factor(heartdata$Race)
+heartdata$Diabetic <- as.factor(heartdata$Diabetic)
+heartdata$PhysicalActivity <- as.factor(heartdata$PhysicalActivity)
+heartdata$GenHealth <- as.factor(heartdata$GenHealth)
+heartdata$Asthma <- as.factor(heartdata$Asthma)
+heartdata$KidneyDisease <- as.factor(heartdata$KidneyDisease)
+heartdata$SkinCancer <- as.factor(heartdata$SkinCancer)
+
+heartdata$AgeCategory <- gsub(" or older","-4",as.character(heartdata$AgeCategory))
+heartdata$LoAge <- as.numeric(substr(heartdata$AgeCategory,1,2))
+heartdata$rand <- sample(0:4,size=nrow(heartdata),replace=T)
+heartdata$Age <- with(heartdata,LoAge+rand)
+heartdata <- subset(heartdata,select=-c(AgeCategory,LoAge,rand))
+
+str(heartdata)
+
+```
+
+
+
+
+Classification and Regression Trees
+```{r}
+shuffle_heartdata <- sample(1:nrow(heartdata))
+head(shuffle_heartdata)
+```
+```{r}
+heart <- heartdata[shuffle_heartdata, ]
+head(heart)
+```
+
+```{r}
+library(dplyr)
+# Drop variables
+clean_heart <- heart %>% 
+  select(-c(HeartDisease, BMI, Stroke, DiffWalking, Race, Diabetic,PhysicalActivity, GenHealth, SleepTime, Asthma, KidneyDisease, SkinCancer, Age)) %>% 
+#Convert to factor level
+	mutate(AlcoholDrinking = factor(AlcoholDrinking, levels = c('No', 'Yes'), labels = c('No', 'Yes')),
+	Smoking = factor(Smoking, levels = c('No', 'Yes'), labels = c('No', 'Yes'))) %>%
+na.omit()
+
+glimpse(clean_heart)
+```
+
+
+```{r}
+
+clean_heart[clean_heart=="0"]<-"0-10"
+clean_heart[clean_heart=="1"]<-"0-10"
+clean_heart[clean_heart=="2"]<-"0-10"
+clean_heart[clean_heart=="3"]<-"0-10"
+clean_heart[clean_heart=="4"]<-"0-10"
+clean_heart[clean_heart=="5"]<-"0-10"
+clean_heart[clean_heart=="6"]<-"0-10"
+clean_heart[clean_heart=="7"]<-"0-10"
+clean_heart[clean_heart=="8"]<-"0-10"
+clean_heart[clean_heart=="9"]<-"0-10"
+clean_heart[clean_heart=="10"]<-"0-10"
+
+clean_heart[clean_heart=="11"]<-"11-20"
+clean_heart[clean_heart=="12"]<-"11-20"
+clean_heart[clean_heart=="13"]<-"11-20"
+clean_heart[clean_heart=="14"]<-"11-20"
+clean_heart[clean_heart=="15"]<-"11-20"
+clean_heart[clean_heart=="16"]<-"11-20"
+clean_heart[clean_heart=="17"]<-"11-20"
+clean_heart[clean_heart=="18"]<-"11-20"
+clean_heart[clean_heart=="19"]<-"11-20"
+clean_heart[clean_heart=="20"]<-"11-20"
+
+clean_heart[clean_heart=="21"]<-"21-30"
+clean_heart[clean_heart=="22"]<-"21-30"
+clean_heart[clean_heart=="23"]<-"21-30"
+clean_heart[clean_heart=="24"]<-"21-30"
+clean_heart[clean_heart=="25"]<-"21-30"
+clean_heart[clean_heart=="26"]<-"21-30"
+clean_heart[clean_heart=="27"]<-"21-30"
+clean_heart[clean_heart=="28"]<-"21-30"
+clean_heart[clean_heart=="29"]<-"21-30"
+clean_heart[clean_heart=="30"]<-"21-30"
+
+```
+
+```{r}
+clean_heart$MentalHealth <- as.factor(clean_heart$MentalHealth)
+clean_heart$PhysicalHealth <- as.factor(clean_heart$PhysicalHealth) 
+```
+
+
+```{r}
+install.packages('rpart.plot') 
+library('rpart.plot')
+create_train_test <- function(data, size = 0.8, train = TRUE) {
+n_row = nrow(data)
+total_row = size * n_row
+train_sample = c(1: total_row)
+if (train == TRUE) {
+return (data[train_sample, ])
+  } else {
+return (data[-train_sample, ])
+  }
+}
+```
+
+```{r}
+data_train <- create_train_test(clean_heart, 0.8, train = TRUE)
+data_test <- create_train_test(clean_heart, 0.8, train = FALSE)
+dim(data_train)
+dim(data_test)
+```
+
+```{r}
+#Frequency Table
+prop.table(table(data_train$Smoking))
+```
+
+```{r}
+#Training the model
+library('rpart.plot')
+  #fit <- rpart(Sex~., data = data_train, method = 'class' )
+#rpart.plot(fit, box.palette="blue", extra = 106)
+set.seed(1)
+fit <- rpart(MentalHealth~., data = data_train, method="class", control = rpart.control(minsplit = 20, minbucket = 7, maxdepth = 10, usesurrogate = 2, xval =10 ))
+
+```
+
+
+```{r}
+printcp(fit) # display the results 
+plotcp(fit) # visualize cross-validation results 
+summary(fit)
+```
+
+
+
+
+
+
+
+```{r}
+library('rpart.plot')
+plot(fit, uniform=TRUE, branch = 0.2, compress = TRUE, margin = 0.1)
+text(fit, use.n=TRUE, all=TRUE, cex=.8)
+```
+
+```{r}
+library(rattle)
+library(rpart.plot)
+library(RColorBrewer)
+
+# plot mytree
+fancyRpartPlot(fit, caption = NULL)
+```
+
+```{r}
+# Split data into training (70%) and validation (30%)
+dt = sort(sample(nrow(heartdata), nrow(heartdata)*.7))
+train<-heartdata[dt,]
+val<-heartdata[-dt,] # Check number of rows in training data set
+nrow(train)
+```
+
+```{r}
+# To view dataset
+edit(train)
+```
+
+```{r}
+# Decision Tree Model
+library(rpart)
+mtree <- rpart(MentalHealth~., data = train, method="class", control = rpart.control(minsplit = 20, minbucket = 7, maxdepth = 10, usesurrogate = 2, xval =10 ))
+
+mtree
+```
+
+```{r}
+#Plot tree
+plot(mtree)
+text(mtree)
+```
+
+```{r}
+#Beautify tree
+library(rattle)
+library(rpart.plot)
+library(RColorBrewer)
+```
+
+```{r}
+#view1
+prp(mtree, faclen = 0, cex = 0.8, extra = 1)
+```
+
+```{r}
+#view2 - total count at each node
+tot_count <- function(x, labs, digits, varlen)
+{paste(labs, "\n\nn =", x$frame$n)}
+
+prp(mtree, faclen = 0, cex = 0.8, node.fun=tot_count)
+```
+
+```{r}
+#view3- fancy Plot
+rattle()
+fancyRpartPlot(mtree)
+```
+
+```{r, echo = T, fig.dim=c(6,4)}
+
+library(ezids)
+library(rpart)
+
+set.seed(1)
+heartfit <- rpart(HeartDisease ~ AlcoholDrinking + Smoking, data=heartdata, method="class" ,parms = list(split = 'information'), 
+              control =rpart.control(minsplit = 1,minbucket=2, cp=0.00002))
+
+
+printcp(heartfit) # display the results 
+plotcp(heartfit) # visualize cross-validation results 
+summary(heartfit) # detailed summary of splits
+
+# plot tree 
+plot(heartfit, uniform=TRUE, 
+   main="Classification Tree for Heart Disease")
+text(fit, use.n=TRUE, all=TRUE, cex=.8)
+
+# plot tree 
+rpart.plot(heartfit)
+text(heartfit, use.n = TRUE, all = TRUE, cex = 0.8)
+
+```
+
+
+
+################################
+```{r}
+install.packages("party")
+library("party")
+```
+
+```{r}
+ output.tree <- ctree(
+  HeartDisease ~ Smoking + AlcoholDrinking, 
+  data = heartdata)
+plot(output.tree)
+```
+
+
+
+
+
+##########################
+```{r}
+#Changing the name of the DF
+library(dplyr)
+clean_heart<-heartdata
+
+```
+
+```{r}
+#Selecting only the meaningful columns for prediction
+clean_heart <- select(clean_heart, MentalHealth, Smoking, Sex, AlcoholDrinking, PhysicalActivity)
+clean_heart <- mutate(clean_heart, MentalHealth=as.numeric(MentalHealth), Smoking=factor(Smoking), Sex=factor(Sex), PhysicalActivity=factor(PhysicalActivity))
+```
+
+```{r}
+library('rpart.plot')
+create_train_test <- function(data, size = 0.8, train = TRUE) {
+n_row = nrow(data)
+total_row = size * n_row
+train_sample = c(1: total_row)
+if (train == TRUE) {
+return (data[train_sample, ])
+  } else {
+return (data[-train_sample, ])
+  }
+}
+```
+
+```{r}
+clean_heart <- select(clean_heart, High, Smoking, Sex, AlcoholDrinking, PhysicalActivity)
+```
+
+```{r}
+#Splitting into traning and testing data
+library(caTools)
+set.seed(123)
+
+data_train <- create_train_test(clean_heart, 0.8, train = TRUE)
+data_test <- create_train_test(clean_heart, 0.8, train = FALSE)
+dim(data_train)
+dim(data_test)
+
+#sample = sample.split(clean_heart$MentalHealth, SplitRatio = .70)
+#train = subset(clean_heart, sample==TRUE)
+#test = subset(clean_heart, sample==FALSE)
+
+```
+
+```{r}
+#Training the Decision Tree Classifier
+tree <- rpart(Smoking ~., data=data_train, method="class", control = rpart.control(minsplit = 1, minbucket = 1, cp = 0.001))
+tree
+```
+
+
+```{r}
+library(rpart)				        # Popular decision tree algorithm
+library(rattle)					# Fancy tree plot
+library(rpart.plot)				# Enhanced tree plots
+library(RColorBrewer)				# Color selection for fancy tree plot
+library(party)					# Alternative decision tree algorithm
+library(partykit)				# Convert rpart object to BinaryTree
+library(caret)	
+plot(tree, uniform=TRUE, main="Classification Tree for Smoking")
+text(tree, use.n=TRUE, all=TRUE, cex=.8)
+```
+
+```{r}
+prp(tree,varlen=3)
+```
+
+```{r}
+library("RColorBrewer")
+fancyRpartPlot(tree, main="Classification Tree for Smoking", palettes="RdPu", type=2)
+
+```
+
+```{r}
+#Confusion Matrix for evaluating the model
+prp(tree)
+```
+
+######################
+
+```{r}
+High = ifelse(clean_heart$MentalHealth>=15, "No", "Yes")
+clean_heart = data.frame(clean_heart, High)
+```
+
+```{r}
+
+
+```
+
+```{r}
+library("tree")
+tree.clean_heart = tree(High~., data=clean_heart)
+```
+
+```{r}
+summary(tree.clean_heart)
+```
+
+```{r}
+plot(tree.clean_heart)
+text(tree.clean_heart, pretty = 0)
+```
+
+
+
+
