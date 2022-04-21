@@ -21,19 +21,16 @@ library(ggplot2)
 knitr::opts_chunk$set(warning = F, results = "hide", message = F)
 options(scientific=T, digits = 3) 
 ```
+# Model building
+## SMART Question
+What variables affect instances of heart disease?
 
-
+## Pre-processing amd balancing the data
+Our goal is to find out the people who are likely to have heart disease in the future, so we can take some actions like a more detailed physical examination before the conditions become worse.
 ```{r}
-
 heartdata <- data.frame(read.csv("heart_2020_cleaned.csv"))
 
 n=10
-#heartdata <- heartdata[seq(1,nrow(heartdata),n),]
-heartdata[heartdata$HeartDisease == 'No',  "HeartDisease"] <- 0
-heartdata[heartdata$HeartDisease == 'Yes', "HeartDisease"] <- 1
-
-
-heartdata$HeartDisease <- as.factor(heartdata$HeartDisease)
 heartdata$Smoking <- as.factor(heartdata$Smoking)
 heartdata$AlcoholDrinking <- as.factor(heartdata$AlcoholDrinking)
 heartdata$Stroke <- as.factor(heartdata$Stroke)
@@ -41,11 +38,19 @@ heartdata$DiffWalking <- as.factor(heartdata$DiffWalking)
 heartdata$Sex <- as.factor(heartdata$Sex)
 heartdata$Race <- as.factor(heartdata$Race)
 
-heartdata[heartdata$Diabetic == 'Yes (during pregnancy)', "Diabetic"] <- "Yes"
+heartdata[heartdata$Diabetic == 'Yes (during pregnancy)', "Diabetic"] <- 'Yes'
 heartdata$Diabetic <- as.factor(heartdata$Diabetic)
 
 heartdata$PhysicalActivity <- as.factor(heartdata$PhysicalActivity)
-heartdata$GenHealth <- as.factor(heartdata$GenHealth)
+
+heartdata[heartdata$GenHealth == 'Poor', "GenHealth"] <- 0
+heartdata[heartdata$GenHealth == 'Fair', "GenHealth"] <- 1
+heartdata[heartdata$GenHealth == 'Good', "GenHealth"] <- 2
+heartdata[heartdata$GenHealth == 'Very good', "GenHealth"] <- 3
+heartdata[heartdata$GenHealth == 'Excellent', "GenHealth"] <- 4
+#heartdata$GenHealth <- as.factor(heartdata$GenHealth)
+heartdata$GenHealth <- as.numeric(heartdata$GenHealth)
+
 heartdata$Asthma <- as.factor(heartdata$Asthma)
 heartdata$KidneyDisease <- as.factor(heartdata$KidneyDisease)
 heartdata$SkinCancer <- as.factor(heartdata$SkinCancer)
@@ -56,339 +61,167 @@ heartdata$rand <- sample(0:4,size=nrow(heartdata),replace=T)
 heartdata$Age <- with(heartdata,LoAge+rand)
 heartdata <- subset(heartdata,select=-c(AgeCategory,LoAge,rand))
 
+heartdata$y <- as.factor(heartdata$HeartDisease)
+heartdata = subset(heartdata, select = -c(HeartDisease))
+
 str(heartdata)
-
 ```
+At first, because we need to do the feature selection later, I put the HeartDisease column in the end of the dataset and rename it into y.
 
-
+To get a look of the proportion of heart disease data before we continue our research.
+```{r results='markup'}
+table( heartdata$y )
+```
+The dataset is very unbalanced, Considering that the dataset is large, so I use undersampling methods to balance the dataset. Reference: https://www.analyticsvidhya.com/blog/2016/03/practical-guide-deal-imbalanced-classification-problems/
 
 ```{r}
-prop.table( table(heartdata$HeartDisease) )
-prop.table( table(heartdata$Diabetic) )
-```
-
-```{r}
-library(ROCR)
-library(grid)
-library(broom)
-library(caret)
-library(tidyr)
-library(dplyr)
-library(scales)
-library(ggplot2)
-```
-
-```{r}
-library(ggthemr)
-library(ggthemes)
-library(gridExtra)
-library(data.table)
-```
-
-```{r}
-set.seed(4321)
-test <- createDataPartition( heartdata$HeartDisease, p = .2, list = FALSE )
-data_train <- heartdata[ -test, ]
-data_test  <- heartdata[ test, ]
+loadPkg("ROSE")
+data_balanced_under <- ovun.sample(y ~ ., data = heartdata, method = "under", N = 27373*2, seed = 1)$data
 rm(heartdata)
-
-# traing logistic regression model
-# model_glm <- glm( left ~ . , data = data_train, family = binomial(logit) )
-# summary_glm <- summary(model_glm)
+unloadPkg("ROSE") 
 ```
 
-```{r}
-prop.table( table(data_train$HeartDisease) )
-prop.table( table(data_train$Race) )
-prop.table( table(data_train$Diabetic) )
+We can find that the data is really balanced.
+```{r results='markup'}
+table( data_balanced_under$y )
 ```
 
+And also the structure of the dataset.
+```{r results='markup'}
+str(data_balanced_under)
+```
+
+## logistic regression model
+
+To train and evaluate the model, we will split the dataset into two parts. 80 percent of the dataset will be used to train the model and the rest will be used to test the accuracy of the model.
 ```{r}
-model_glm <- glm( HeartDisease ~ . - Race - PhysicalActivity, data = data_train, family = binomial(logit) )
+loadPkg("caret")
+set.seed(4321)
+test <- createDataPartition( data_balanced_under$y, p = .2, list = FALSE )
+data_train <- data_balanced_under[ -test, ]
+data_test  <- data_balanced_under[ test, ]
+unloadPkg("caret") 
+```
+
+```{r results='markup'}
+model_glm <- glm( y ~ ., data = data_train, family = binomial(logit) )
 summary_glm <- summary(model_glm)
 summary_glm
 ```
 
-```{r}
-list( summary_glm$coefficient, 
-      round( 1 - ( summary_glm$deviance / summary_glm$null.deviance ), 2 ) )
+We can find from the model that the p-value of Race and PhysicalActivity are larger than 0.05, which means they are insignificant. So just drop these two variables and make a logistic regression model again.
+
+```{r results='markup'}
+model2_glm <- glm( y ~ . - Race - PhysicalActivity, data = data_train, family = binomial(logit) )
+summary2_glm <- summary(model2_glm)
+summary2_glm
 ```
 
-```{r}
-# prediction
-data_train$prediction <- predict( model_glm, newdata = data_train, type = "response" )
-data_test$prediction  <- predict( model_glm, newdata = data_test , type = "response" )
+We’ll quickly check two things for this model. First the p-values. Values below .05 indicates significance, which means the coefficient or so called parameters that are estimated by our model are reliable. And second, the pseudo R square. This value ranging from 0 to 1 indicates how much variance is explained by our model.
 
-# distribution of the prediction score grouped by known outcome
-ggplot( data_train, aes( prediction, color = as.factor(HeartDisease) ) ) + 
-geom_density( size = 0.8 ) +
-ggtitle( "Training Set's Predicted Score" )# + 
-#scale_color_economist( name = "data", labels = c( "negative", "positive" ) )# + 
-#theme_economist()
+All the p-values of the models indicates significance, meaning that our model is a legitimate one. But R square of 0.29 tells that 29 percent of the variance is explained.
+```{r}
+list( summary2_glm$coefficient, 
+      round( 1 - ( summary2_glm$deviance / summary2_glm$null.deviance ), 2 ) )
 ```
 
-```{r}
-AccuracyCutoffInfo <- function( train, test, predict, actual )
-{
-	# change the cutoff value's range as you please 
-	cutoff <- seq( .4, .8, by = .05 )
+Have a look of the vif value.
+```{r results='markup'}
+vif_md2 = faraway::vif(model2_glm)
+vif_md2
+```
+We can find that some vif values are larger than 10, which means these variables are highly correlated, not acceptable. So I tried to drop one variable a time. At mean time, look at the p-value to ensure that the variables are significant. At the end, we got the model like below:
 
-	accuracy <- lapply( cutoff, function(c)
-	{
-		# use the confusionMatrix from the caret package
-	  data_train <- as.factor( as.numeric( train[[predict]] > c ) )
-		cm_train <- confusionMatrix(data_train, as.factor(train[[actual]]) )
-		data_test <- as.factor( as.numeric( test[[predict]] > c ) )
-		cm_test  <- confusionMatrix( data_test, as.factor(test[[actual]]) )
-			
-		dt <- data.table( cutoff = c,
-						  train  = cm_train$overall[["Accuracy"]],
-		 			      test   = cm_test$overall[["Accuracy"]] )
-		return(dt)
-	}) %>% rbindlist()
-
-	# visualize the accuracy of the train and test set for different cutoff value 
-	# accuracy in percentage.
-	accuracy_long <- gather( accuracy, "data", "accuracy", -1 )
-	
-	plot <- ggplot( accuracy_long, aes( cutoff, accuracy, group = data, color = data ) ) + 
-			geom_line( size = 1 ) + geom_point( size = 3 ) +
-			scale_y_continuous( label = percent ) +
-			ggtitle( "Train/Test Accuracy for Different Cutoff" )
-
-	return( list( data = accuracy, plot = plot ) )
-}
+```{r results='markup'}
+model3_glm <- glm( y ~ . - Race - PhysicalActivity - Age - Asthma - PhysicalHealth, data = data_train, family = binomial(logit) )
+summary3_glm <- summary(model3_glm)
+summary3_glm
 ```
 
-```{r}
-# confusionMatrix(data_train, as.factor(train[['HeartDisease']]) )
+```{r results='markup'}
+vif_md3 = faraway::vif(model3_glm)
+vif_md3
+```
+Now, the vif values are all below 10.
 
-# View(data_train)
-accuracy_info <- AccuracyCutoffInfo( train = data_train, test = data_test, predict = "prediction", actual = "HeartDisease" )
+## Feature selection
+In this part, I want to use feature selection to find out the suitable variables from our current model. Because the data_train dataset is large and takes a lot of time to run. I changed to data_test to do the feature selection.
+
+```{r}
+data_feature_selection = subset(data_test, select = -c(Race, PhysicalActivity, PhysicalHealth, Age, Asthma))
+str(data_feature_selection)
 ```
 
-
-```{r}
-accuracy_info$plot
+```{r results='markup'}
+loadPkg("bestglm")
+res.bestglm <- bestglm(Xy = data_feature_selection, family = binomial,
+            IC = "AIC",                 # Information criteria for
+            method = "backward")
+summary(res.bestglm)
+res.bestglm$BestModels
+summary(res.bestglm$BestModels)
+unloadPkg("bestglm") 
+unloadPkg("leaps") 
 ```
 
-```{r}
-ConfusionMatrixInfo <- function( data, predict, actual, cutoff )
-{	
-	# extract the column ;
-	# relevel making 1 appears on the more commonly seen position in 
-	# a two by two confusion matrix	
-	predict <- data[[predict]]
-	actual  <- relevel( as.factor( data[[actual]] ), "1" )
-	
-	result <- data.table( actual = actual, predict = predict )
+We can find from the feature selection that the best model has all these 13 variables, and its CIA (Akaike Information Criterion) is 12062, which is the lowest among these models.
 
-	# calculating each pred falls into which category for the confusion matrix
-	result[ , type := ifelse( predict >= cutoff & actual == 1, "TP",
-					  ifelse( predict >= cutoff & actual == 0, "FP", 
-					  ifelse( predict <  cutoff & actual == 1, "FN", "TN" ) ) ) %>% as.factor() ]
+## Model Evaluation
 
-	# jittering : can spread the points along the x axis 
-	plot <- ggplot( result, aes( actual, predict, color = type ) ) + 
-			geom_violin( fill = "white", color = NA ) +
-			geom_jitter( shape = 1 ) + 
-			geom_hline( yintercept = cutoff, color = "blue", alpha = 0.6 ) + 
-			scale_y_continuous( limits = c( 0, 1 ) ) + 
-			scale_color_discrete( breaks = c( "TP", "FN", "FP", "TN" ) ) + # ordering of the legend 
-			guides( col = guide_legend( nrow = 2 ) ) + # adjust the legend to have two rows  
-			ggtitle( sprintf( "Confusion Matrix with Cutoff at %.2f", cutoff ) )
+### ROC and AUC
 
-	return( list( data = result, plot = plot ) )
-}
-
-cm_info <- ConfusionMatrixInfo( data = data_test, predict = "prediction", 
-                                actual = "HeartDisease", cutoff = .55 )
-#ggthemr("flat")
-cm_info$plot
+Receiver-Operator-Characteristic (ROC) curve and Area-Under-Curve (AUC) measures the true positive rate (or sensitivity) against the false positive rate (or specificity). The area-under-curve is always between 0.5 and 1. Values higher than 0.8 is considered good model fit.  
+```{r roc_auc}
+loadPkg("pROC") # receiver operating characteristic curve, gives the diagnostic ability of a binary classifier system as its discrimination threshold is varied. The curve is on sensitivity/recall/true-positive-rate vs false_alarm/false-positive-rate/fall-out.
+prob=predict(model3_glm, type = "response" )
+data_train$prob=prob
+h <- roc(y~prob, data=data_train)
+auc(h) # area-under-curve prefer 0.8 or higher.
+plot(h)
+# unloadPkg("pROC")
 ```
+The AUC of the model is 0.795, which is a little bit lower than 0.8. Because our model looks suitalbe and we have all the needed features, I suppose that the data causes the AUC value is not high enough. 
 
-```{r}
-prop.table( table( data_test$HeartDisease ) )
+
+#### Confusion matrix 
+
+We can have a look of the Confusion matrix.
+
+```{r confusionMatrix, results='markup'}
+loadPkg("regclass")
+# confusion_matrix(admitLogit)
+xkabledply( confusion_matrix(model3_glm), title = "Confusion matrix from Logit Model" )
+unloadPkg("regclass")
 ```
+We can find from the confusion Matrix that Precision is 14941/(5252+14941) = 0.74, which means the valid of the result is 0.74. And the recall is 14941/(6957+14941) = 0.682, which means how complete the results are. In our model, actually, I think the recall is more important, because FN means heart disease patients who are missed by our model, which can cause a harmful result.
 
-```{r}
-cm_info$data
+
+```{r results='markup'}
+loadPkg("InformationValue")
+predicted = predict(model3_glm, data_test, type = "response")
+
+confusionMatrix(data_test$y, predicted)
+unloadPkg("InformationValue")
 ```
+Then we can use the test dataset to checkout whether the model is good to use. So I used the data_test to make a prediction and calculate the confusion Matrix by the test dataset. The Precision is 3722/(1255+3722) = 0.748 and the recall is 3722/(1753+3722) = 0.68. The Precision value and recall value of the test dataset is similiar to the train dataset, which means our model is reliable to predict the heart disease.
 
-```{r}
-ROCInfo <- function( data, predict, actual, cost.fp, cost.fn )
-{
-	# calculate the values using the ROCR library
-	# true positive, false postive 
-	pred <- prediction( data[[predict]], data[[actual]] )
-	perf <- performance( pred, "tpr", "fpr" )
-	roc_dt <- data.frame( fpr = perf@x.values[[1]], tpr = perf@y.values[[1]] )
 
-	# cost with the specified false positive and false negative cost 
-	# false postive rate * number of negative instances * false positive cost + 
-	# false negative rate * number of positive instances * false negative cost
-	cost <- perf@x.values[[1]] * cost.fp * sum( data[[actual]] == 0 ) + 
-			( 1 - perf@y.values[[1]] ) * cost.fn * sum( data[[actual]] == 1 )
+## Interpretation and Reporting
 
-	cost_dt <- data.frame( cutoff = pred@cutoffs[[1]], cost = cost )
+We’ll return to our logistic regression model for a minute, and look at the estiamted parameters (coefficients). Since the model’s parameter the recorded in logit format, we’ll transform it into odds ratio so that it’ll be easier to interpret.
 
-	# optimal cutoff value, and the corresponding true positive and false positive rate
-	best_index  <- which.min(cost)
-	best_cost   <- cost_dt[ best_index, "cost" ]
-	best_tpr    <- roc_dt[ best_index, "tpr" ]
-	best_fpr    <- roc_dt[ best_index, "fpr" ]
-	best_cutoff <- pred@cutoffs[[1]][ best_index ]
-	
-	# area under the curve
-	auc <- performance( pred, "auc" )@y.values[[1]]
 
-	# normalize the cost to assign colors to 1
-	normalize <- function(v) ( v - min(v) ) / diff( range(v) )
-	
-	# create color from a palette to assign to the 100 generated threshold between 0 ~ 1
-	# then normalize each cost and assign colors to it, the higher the blacker
-	# don't times it by 100, there will be 0 in the vector
-	col_ramp <- colorRampPalette( c( "green", "orange", "red", "black" ) )(100)   
-	col_by_cost <- col_ramp[ ceiling( normalize(cost) * 99 ) + 1 ]
+```{r results='markup'}
+loadPkg("broom")
 
-	roc_plot <- ggplot( roc_dt, aes( fpr, tpr ) ) + 
-				geom_line( color = rgb( 0, 0, 1, alpha = 0.3 ) ) +
-				geom_point( color = col_by_cost, size = 4, alpha = 0.2 ) + 
-				geom_segment( aes( x = 0, y = 0, xend = 1, yend = 1 ), alpha = 0.8, color = "royalblue" ) + 
-				labs( title = "ROC", x = "False Postive Rate", y = "True Positive Rate" ) +
-				geom_hline( yintercept = best_tpr, alpha = 0.8, linetype = "dashed", color = "steelblue4" ) +
-				geom_vline( xintercept = best_fpr, alpha = 0.8, linetype = "dashed", color = "steelblue4" )				
-
-	cost_plot <- ggplot( cost_dt, aes( cutoff, cost ) ) +
-				 geom_line( color = "blue", alpha = 0.5 ) +
-				 geom_point( color = col_by_cost, size = 4, alpha = 0.5 ) +
-				 ggtitle( "Cost" ) +
-				 scale_y_continuous( labels = comma ) +
-				 geom_vline( xintercept = best_cutoff, alpha = 0.8, linetype = "dashed", color = "steelblue4" )	
-
-	# the main title for the two arranged plot
-	sub_title <- sprintf( "Cutoff at %.2f - Total Cost = %d, AUC = %.3f", 
-						  best_cutoff, best_cost, auc )
-	
-	# arranged into a side by side plot
-	plot <- arrangeGrob( roc_plot, cost_plot, ncol = 2, 
-						 top = textGrob( sub_title, gp = gpar( fontsize = 16, fontface = "bold" ) ) )
-	
-	return( list( plot 		  = plot, 
-				  cutoff 	  = best_cutoff, 
-				  totalcost   = best_cost, 
-				  auc         = auc,
-				  sensitivity = best_tpr, 
-				  specificity = 1 - best_fpr ) )
-}
-```
-
-```{r}
-
-cost_fp <- 100
-cost_fn <- 500
-roc_info <- ROCInfo( data = cm_info$data, predict = "predict", 
-                     actual = "actual", cost.fp = cost_fp, cost.fn = cost_fn )
-grid.draw(roc_info$plot)
-```
-
-```{r}
-data = cm_info$data
-predict = "predict"
-actual = "actual"
-cost.fp = cost_fp
-cost.fn = cost_fn
-
-pred <- prediction( data[[predict]], data[[actual]] )
-perf <- performance( pred, "tpr", "fpr" )
-roc_dt <- data.frame( fpr = perf@x.values[[1]], tpr = perf@y.values[[1]] )
-
-# cost with the specified false positive and false negative cost 
-# false postive rate * number of negative instances * false positive cost + 
-# false negative rate * number of positive instances * false negative cost
-cost <- perf@x.values[[1]] * cost.fp * sum( data[[actual]] == 0 ) + 
-		( 1 - perf@y.values[[1]] ) * cost.fn * sum( data[[actual]] == 1 )
-
-cost_dt <- data.frame( cutoff = pred@cutoffs[[1]], cost = cost )
-
-# optimal cutoff value, and the corresponding true positive and false positive rate
-best_index  <- which.min(cost)
-best_cost   <- cost_dt[ best_index, "cost" ]
-best_tpr    <- roc_dt[ best_index, "tpr" ]
-best_fpr    <- roc_dt[ best_index, "fpr" ]
-best_cutoff <- pred@cutoffs[[1]][ best_index ]
-
-# area under the curve
-auc <- performance( pred, "auc" )@y.values[[1]]
-
-# normalize the cost to assign colors to 1
-normalize <- function(v) ( v - min(v) ) / diff( range(v) )
-
-# create color from a palette to assign to the 100 generated threshold between 0 ~ 1
-# then normalize each cost and assign colors to it, the higher the blacker
-# don't times it by 100, there will be 0 in the vector
-col_ramp <- colorRampPalette( c( "green", "orange", "red", "black" ) )(100)   
-col_by_cost <- col_ramp[ ceiling( normalize(cost) * 99 ) + 1 ]
-```
-
-```{r}
-ggplot( roc_dt, aes( fpr, tpr ) ) + 
-			geom_line( color = rgb( 0, 0, 1, alpha = 0.3 ) ) +
-			geom_point( color = col_by_cost, size = 4, alpha = 0.2 ) + 
-			geom_segment( aes( x = 0, y = 0, xend = 1, yend = 1 ), alpha = 0.8, color = "royalblue" ) + 
-			labs( title = "ROC", x = "False Postive Rate", y = "True Positive Rate" ) +
-			geom_hline( yintercept = best_tpr, alpha = 0.8, linetype = "dashed", color = "steelblue4" ) +
-			geom_vline( xintercept = best_fpr, alpha = 0.8, linetype = "dashed", color = "steelblue4" )				
-
-ggplot( cost_dt, aes( cutoff, cost ) ) +
-			 geom_line( color = "blue", alpha = 0.5 ) +
-			 geom_point( color = col_by_cost, size = 4, alpha = 0.5 ) +
-			 ggtitle( "Cost" ) +
-			 scale_y_continuous( labels = comma ) +
-			 geom_vline( xintercept = best_cutoff, alpha = 0.8, linetype = "dashed", color = "steelblue4" )	
-
-# the main title for the two arranged plot
-sub_title <- sprintf( "Cutoff at %.2f - Total Cost = %d, AUC = %.3f", 
-					  best_cutoff, best_cost, auc )
-
-# arranged into a side by side plot
-arrangeGrob( roc_plot, cost_plot, ncol = 2, 
-					 top = textGrob( sub_title, gp = gpar( fontsize = 16, fontface = "bold" ) ) )
-
-```
-
-```{r}
-roc_info$cutoff
-```
-
-```{r}
-cm_info <- ConfusionMatrixInfo( data = data_test, predict = "prediction", 
-                                actual = "HeartDisease", cutoff = roc_info$cutoff )
-#ggthemr("flat")
-cm_info$plot
-```
-
-```{r}
-coefficient <- tidy(model_glm)[ , c( "term", "estimate", "statistic" ) ]
+coefficient <- tidy(model3_glm)[ , c( "term", "estimate", "statistic" ) ]
 
 # transfrom the coefficient to be in probability format 
 coefficient$estimate <- exp( coefficient$estimate )
-coefficient
+coefficient[sort(abs(coefficient$estimate),decreasing=T,index.return=T)[[2]],]
+
+unloadPkg("broom")
 ```
 
-
-
-```{r}
-
-```
-
-
-```{r}
-
-```
-
-
-```{r}
-
-```
+We can find from the table that other diseases (stroke, kidney disease, diabetic, SkinCancer), general health conditions, sex, DiffWalking (serious difficulty walking or climbing stairs), and smoking habit all largely influence the possibility of heart disease. It's a little weird that drinking alcohol will reduce the possibility of heart disease. As we always think, drinking is not a good habit, maybe the data also includes people who drink some little wine.
 
