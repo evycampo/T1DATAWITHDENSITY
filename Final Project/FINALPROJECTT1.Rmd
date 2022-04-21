@@ -368,56 +368,56 @@ What variables affect instances of heart disease?
 ## Pre-processing amd balancing the data
 Our goal is to find out the people who are likely to have heart disease in the future, so we can take some actions like a more detailed physical examination before the conditions become worse.
 ```{r}
-heartdata <- data.frame(read.csv("heart_2020_cleaned.csv"))
+heartdata2 <- data.frame(read.csv("heart_2020_cleaned.csv"))
 
 n=10
-heartdata$Smoking <- as.factor(heartdata$Smoking)
-heartdata$AlcoholDrinking <- as.factor(heartdata$AlcoholDrinking)
-heartdata$Stroke <- as.factor(heartdata$Stroke)
-heartdata$DiffWalking <- as.factor(heartdata$DiffWalking)
-heartdata$Sex <- as.factor(heartdata$Sex)
-heartdata$Race <- as.factor(heartdata$Race)
+heartdata2$Smoking <- as.factor(heartdata2$Smoking)
+heartdata2$AlcoholDrinking <- as.factor(heartdata2$AlcoholDrinking)
+heartdata2$Stroke <- as.factor(heartdata2$Stroke)
+heartdata2$DiffWalking <- as.factor(heartdata2$DiffWalking)
+heartdata2$Sex <- as.factor(heartdata2$Sex)
+heartdata2$Race <- as.factor(heartdata2$Race)
 
-heartdata[heartdata$Diabetic == 'Yes (during pregnancy)', "Diabetic"] <- 'Yes'
-heartdata$Diabetic <- as.factor(heartdata$Diabetic)
+heartdata2[heartdata2$Diabetic == 'Yes (during pregnancy)', "Diabetic"] <- 'Yes'
+heartdata2$Diabetic <- as.factor(heartdata2$Diabetic)
 
-heartdata$PhysicalActivity <- as.factor(heartdata$PhysicalActivity)
+heartdata2$PhysicalActivity <- as.factor(heartdata2$PhysicalActivity)
 
-heartdata[heartdata$GenHealth == 'Poor', "GenHealth"] <- 0
-heartdata[heartdata$GenHealth == 'Fair', "GenHealth"] <- 1
-heartdata[heartdata$GenHealth == 'Good', "GenHealth"] <- 2
-heartdata[heartdata$GenHealth == 'Very good', "GenHealth"] <- 3
-heartdata[heartdata$GenHealth == 'Excellent', "GenHealth"] <- 4
-#heartdata$GenHealth <- as.factor(heartdata$GenHealth)
-heartdata$GenHealth <- as.numeric(heartdata$GenHealth)
+heartdata2[heartdata2$GenHealth == 'Poor', "GenHealth"] <- 0
+heartdata2[heartdata2$GenHealth == 'Fair', "GenHealth"] <- 1
+heartdata2[heartdata2$GenHealth == 'Good', "GenHealth"] <- 2
+heartdata2[heartdata2$GenHealth == 'Very good', "GenHealth"] <- 3
+heartdata2[heartdata2$GenHealth == 'Excellent', "GenHealth"] <- 4
+#heartdata2$GenHealth <- as.factor(heartdata2$GenHealth)
+heartdata2$GenHealth <- as.numeric(heartdata2$GenHealth)
 
-heartdata$Asthma <- as.factor(heartdata$Asthma)
-heartdata$KidneyDisease <- as.factor(heartdata$KidneyDisease)
-heartdata$SkinCancer <- as.factor(heartdata$SkinCancer)
+heartdata2$Asthma <- as.factor(heartdata2$Asthma)
+heartdata2$KidneyDisease <- as.factor(heartdata2$KidneyDisease)
+heartdata2$SkinCancer <- as.factor(heartdata2$SkinCancer)
 
-heartdata$AgeCategory <- gsub(" or older","-4",as.character(heartdata$AgeCategory))
-heartdata$LoAge <- as.numeric(substr(heartdata$AgeCategory,1,2))
-heartdata$rand <- sample(0:4,size=nrow(heartdata),replace=T)
-heartdata$Age <- with(heartdata,LoAge+rand)
-heartdata <- subset(heartdata,select=-c(AgeCategory,LoAge,rand))
+heartdata2$AgeCategory <- gsub(" or older","-4",as.character(heartdata2$AgeCategory))
+heartdata2$LoAge <- as.numeric(substr(heartdata2$AgeCategory,1,2))
+heartdata2$rand <- sample(0:4,size=nrow(heartdata2),replace=T)
+heartdata2$Age <- with(heartdata2,LoAge+rand)
+heartdata2 <- subset(heartdata2,select=-c(AgeCategory,LoAge,rand))
 
-heartdata$y <- as.factor(heartdata$HeartDisease)
-heartdata = subset(heartdata, select = -c(HeartDisease))
+heartdata2$y <- as.factor(heartdata2$HeartDisease)
+heartdata2 = subset(heartdata2, select = -c(HeartDisease))
 
-str(heartdata)
+str(heartdata2)
 ```
 At first, because we need to do the feature selection later, I put the HeartDisease column in the end of the dataset and rename it into y.
 
 To get a look of the proportion of heart disease data before we continue our research.
 ```{r results='markup'}
-table( heartdata$y )
+table( heartdata2$y )
 ```
 The dataset is very unbalanced, Considering that the dataset is large, so I use undersampling methods to balance the dataset. Reference: https://www.analyticsvidhya.com/blog/2016/03/practical-guide-deal-imbalanced-classification-problems/
 
 ```{r}
 loadPkg("ROSE")
-data_balanced_under <- ovun.sample(y ~ ., data = heartdata, method = "under", N = 27373*2, seed = 1)$data
-rm(heartdata)
+data_balanced_under <- ovun.sample(y ~ ., data = heartdata2, method = "under", N = 27373*2, seed = 1)$data
+rm(heartdata2)
 unloadPkg("ROSE") 
 ```
 
@@ -528,7 +528,7 @@ The AUC of the model is 0.795, which is a little bit lower than 0.8. Because our
 We can have a look of the Confusion matrix.
 
 ```{r confusionMatrix, results='markup'}
-install.packages("regclass")
+# install.packages("regclass")
 library("regclass")
 # confusion_matrix(admitLogit)
 xkabledply( confusion_matrix(model3_glm), title = "Confusion matrix from Logit Model" )
