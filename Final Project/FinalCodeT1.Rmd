@@ -1,0 +1,349 @@
+---
+title: "Group 1 Final"
+author: "Evelyn Campo, Xiao Qi, Nusrat Prithee, Roman Kosarzycki"
+date: "April 27, 2022"
+output:  
+    rmdformats::readthedown:
+      toc_float: true
+      number_sections: true
+      includes:
+        before_body: header.html
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+options(scipen = 999, digits = 3, big.mark=",", warn = -1)
+```
+
+```{r basicfunct, include=FALSE}
+loadPkg = function(x) { if (!require(x,character.only=T, quietly =T)) { install.packages(x,dep=T,repos="http://cran.us.r-project.org"); if(!require(x,character.only=T)) stop("Package not found") } }
+```
+
+```{r init, include=FALSE}
+library(ezids)
+library(ggplot2)
+library(dplyr)
+loadPkg("tidyr")
+```
+
+```{r}
+# My functions
+
+GeomSplitViolin <- ggproto("GeomSplitViolin", GeomViolin, draw_group = function(self, data, ..., draw_quantiles = NULL){
+  data <- transform(data, xminv = x - violinwidth * (x - xmin), xmaxv = x + violinwidth * (xmax - x))
+  grp <- data[1,'group']
+  newdata <- plyr::arrange(transform(data, x = if(grp%%2==1) xminv else xmaxv), if(grp%%2==1) y else -y)
+  newdata <- rbind(newdata[1, ], newdata, newdata[nrow(newdata), ], newdata[1, ])
+  newdata[c(1,nrow(newdata)-1,nrow(newdata)), 'x'] <- round(newdata[1, 'x']) 
+  if (length(draw_quantiles) > 0 & !scales::zero_range(range(data$y))) {
+    stopifnot(all(draw_quantiles >= 0), all(draw_quantiles <= 
+                                              1))
+    quantiles <- create_quantile_segment_frame(data, draw_quantiles)
+    aesthetics <- data[rep(1, nrow(quantiles)), setdiff(names(data), c("x", "y")), drop = FALSE]
+    aesthetics$alpha <- rep(1, nrow(quantiles))
+    both <- cbind(quantiles, aesthetics)
+    quantile_grob <- GeomPath$draw_panel(both, ...)
+    ggplot2:::ggname("geom_split_violin", grobTree(GeomPolygon$draw_panel(newdata, ...), quantile_grob))
+  }
+  else {
+    ggplot2:::ggname("geom_split_violin", GeomPolygon$draw_panel(newdata, ...))
+  }
+})
+
+geom_split_violin <- function (mapping = NULL, data = NULL, stat = "ydensity", position = "identity", ..., draw_quantiles = NULL, trim = TRUE, scale = "area", na.rm = FALSE, show.legend = NA, inherit.aes = TRUE) {
+  layer(data = data, mapping = mapping, stat = stat, geom = GeomSplitViolin, position = position, show.legend = show.legend, inherit.aes = inherit.aes, params = list(trim = trim, scale = scale, draw_quantiles = draw_quantiles, na.rm = na.rm, ...))
+}
+
+getmode <- function(v) {
+   uniqv <- unique(v)
+   uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+```
+
+# Introduction
+Heart disease is one of the most common diseases and a leading cause of death in the United States. This dataset takes data from the CDC for the year 2020 for people with and without heart disease. It includes health-related data including BMI, whether someone is a smoker, the amount of physical activity, age, race, and other variables. Our hope is that by studying how different health variables relate to instances of heart disease, we can determine if there are significant factors that can predict heart disease or are correlated with heart disease. In addition to this, the dataset includes a measure of mental health. We were interested in what factors can affect mental health. For instance, drinking, smoking, and physical activity were predicted to have some impact on overall mental health. Lastly, we want to look at the relation between BMI and physical activity. There have been some recent studies that BMI does not have any correlation to physical health, so we’d like to use this dataset to explore that relation.
+
+## Background
+
+
+
+## Description of the Dataset
+
+This data comes from a 2020 survey from the CDC on health status, used to study overall health and potential contributors to heart disease. The original dataset had 279 variables and over 400,000 rows, but the version which was uploaded to Kaggle contains 18 variables which could potentially influence heart disease and just over 320,000 complete rows, so there are no NA's and all 18 of the variables were taken into account in some way. The 18 variables consist of the following: HeartDisease, BMI, Smoking, AlcoholDrinking, Stroke, PhysicalHealth, MentalHealth, DiffWalking, Sex, AgeCategory, Race, Diabetic, PhysicalActivity, GenHealth, SleepTime, Asthma, KidneyDisease, SkinCancer. Most of these are straightforward variables that correspond with their name, but there are a few which require further explanation.
+
+The people interviewed for this survey would answer "Yes" for Smoking if they have smoked at least 100 cigarettes in their entire lifetime and "Yes" to AlcoholDrinking if they are considered heavy drinkers (more than 14 drinks per week for men and 7 for women). PhysicalHealth and MentalHealth are numerical variables which give the number days in the past 30 days during which their physical or mental health, respectively, could be considered not good. That means that lower values correspond to less days of poor health. Recipients answered "Yes" to DiffWalking if they have any difficulty walking or climbing stairs. Diabetic is a four-level factor variable which records if they have ever had diabetes with the following responses: "No", "Borderline", "Yes (during pregnancy)", or "Yes". PhysicalActivity records whether the recipients reported any physical activity in the past 30 days outside of their regular job. The rest of the variables should be relatively self-explanatory given their names. 
+
+# Understanding the Data
+
+## Dataset Summary
+
+Importing the dataset and original data structure:
+
+```{r}
+heartdata <- data.frame(read.csv("heart_2020_cleaned.csv"))
+str(heartdata)
+```
+
+## Cleaning the Dataset
+
+*All but five of the variables were set to factors. Most factor variable had 2 levels (yes or no questions), but some had up to six levels.
+
+*In the variable Race, "American Indian/Alaskan Native" was redefined to "Native" in order to conserve space on plots and tables, but it should be noted that these two groups make up that level
+
+*In the variable Diabetic, "No, borderline diabetes" was redefined to "Borderline" in order to conserve space. There is no information lost in doing this.
+
+*An order to the factor variables Race, Diabetic, and GenHealth was established to keep the orders uniform across plots and tables. The order for Race is based on relative frequency (with "Other" being at the end) and the other two varriables were put in a logical order.
+
+*The variable AgeCategory was replaced with Age so that it could be used as a numerical variable. A random value was chosen in the range given by AgeCategory, that value was set to Age, and unnecessary variables were deleted.
+
+```{r}
+heartdata$HeartDisease <- as.factor(heartdata$HeartDisease)
+heartdata$Smoking <- as.factor(heartdata$Smoking)
+heartdata$AlcoholDrinking <- as.factor(heartdata$AlcoholDrinking)
+heartdata$Stroke <- as.factor(heartdata$Stroke)
+heartdata$DiffWalking <- as.factor(heartdata$DiffWalking)
+heartdata$Sex <- as.factor(heartdata$Sex)
+heartdata$Race <- gsub("American Indian/Alaskan Native","Native",heartdata$Race)
+heartdata$Race <- factor(heartdata$Race,levels=c("White","Hispanic","Black","Asian","Native","Other"))
+heartdata$Diabetic <- gsub("No, borderline diabetes","Borderline",heartdata$Diabetic)
+heartdata$Diabetic <- factor(heartdata$Diabetic,levels=c("No","Borderline","Yes (during pregnancy)","Yes"))
+heartdata$PhysicalActivity <- as.factor(heartdata$PhysicalActivity)
+heartdata$GenHealth <- factor(heartdata$GenHealth,levels=c("Poor","Fair","Good","Very good","Excellent"))
+heartdata$Asthma <- as.factor(heartdata$Asthma)
+heartdata$KidneyDisease <- as.factor(heartdata$KidneyDisease)
+heartdata$SkinCancer <- as.factor(heartdata$SkinCancer)
+
+heartdata$AgeCategory <- gsub(" or older","-84",as.character(heartdata$AgeCategory))
+heartdata$HiAge <- as.numeric(substr(heartdata$AgeCategory,4,5))
+heartdata$rand <- sample(0:4,size=nrow(heartdata),replace=T)
+heartdata$Age <- with(heartdata,HiAge-rand)
+
+heartdata <- subset(heartdata,select=-c(AgeCategory,HiAge,rand))
+
+posdis <- subset(heartdata,HeartDisease=="Yes")
+negdis <- subset(heartdata,HeartDisease=="No")
+
+str(heartdata)
+```
+
+# Exploratory Data Analysis
+
+## Understanding the Data
+
+```{r}
+# Pie graphs
+
+hear<-table(heartdata$HeartDisease)
+pie(hear,col = rainbow(length(hear)),main="Heart Disease?")
+
+smok<-table(heartdata$Smoking)
+pie(smok,col = rainbow(length(smok)),main="Smoker?")
+
+drin<-table(heartdata$AlcoholDrinking)
+pie(drin,col = rainbow(length(drin)),main="Heavy Drinker?")
+
+race<-table(heartdata$Race)
+pie(race,col = rainbow(length(race)),main="Race?")
+
+sexx<-table(heartdata$Sex)
+pie(sexx,col = rainbow(length(sexx)),main="Sex?")
+```
+
+These pie charts give the relative frequency of a few key factor variables. The show that a majority of people do not have heart disease, have not smoked, are not heavy drinkers, are white, and are female.
+
+```{r}
+# Histograms of numerical variables
+
+ggplot(data=heartdata, aes(x=BMI))+geom_histogram(bins=50)+xlim(0,75)+ggtitle("Distribution of BMI")+geom_vline(xintercept = mean(heartdata$BMI,na.rm = TRUE), color = "red", size=1.5)+geom_vline(xintercept = median(heartdata$BMI,na.rm = TRUE), color = "blue", size=1.5)+geom_vline(xintercept = getmode(heartdata$BMI), color = "orange", size=1.5)
+
+ggplot(data=heartdata, aes(x=PhysicalHealth))+geom_histogram(bins=30)+ggtitle("Distribution of Days of Poor Physical Health")
+ggplot(data=heartdata, aes(x=MentalHealth))+geom_histogram(bins=30)+ggtitle("Distribution of Days of Poor Mental Health")
+
+ggplot(data=heartdata, aes(x=SleepTime))+geom_histogram(bins=12)+xlim(2,13)+ggtitle("Distribution of Sleep Time")+geom_vline(xintercept = mean(heartdata$SleepTime,na.rm = TRUE), color = "red", size=1.5)+geom_vline(xintercept = median(heartdata$SleepTime,na.rm = TRUE), color = "blue", size=1.5)+geom_vline(xintercept = getmode(heartdata$SleepTime), color = "orange", size=1.5)
+
+ggplot(data=heartdata, aes(x=Age))+geom_histogram(bins=65)+ggtitle("Distribution of Ages")+geom_vline(xintercept = mean(heartdata$Age,na.rm = TRUE), color = "red", size=1.5)+geom_vline(xintercept = median(heartdata$Age,na.rm = TRUE), color = "blue", size=1.5)+geom_vline(xintercept = getmode(heartdata$Age), color = "orange", size=1.5)
+```
+
+These histograms give a brief look at the numerical variables. BMI has an average value of 28.3 with a right skew. A majority of people reported 0 days of poor physical and mental health over the past 30 days. The average for sleep time and age is 7.1 hours and 54.6 years, respectively. 
+
+## Smart Question: What variables affect instances of heart disease?
+
+```{r}
+# Comparison of factors
+
+hea<-table(heartdata$HeartDisease)
+#hea
+#No heart disease
+#hea[1]/(hea[1]+hea[2])
+#Heart disease
+#hea[2]/(hea[1]+hea[2])
+xkabledply(hea, title = paste("Instances of Heart Disease:" ) )
+
+smo<-table(heartdata$HeartDisease,heartdata$Smoking)
+#smo
+#No smoking, no heart disease
+#smo[1]
+#smo[1]/(smo[1]+smo[2])
+#No smoking, heart disease
+#smo[2]
+#smo[2]/(smo[1]+smo[2])
+#Smoking, no heart disease
+#smo[3]
+#smo[3]/(smo[3]+smo[4])
+#Smoking, heart disease
+#smo[4]
+#smo[4]/(smo[3]+smo[4])
+xkabledply(smo, title = paste("Heart Disease vs. Smoking:" ) )
+
+dri<-table(heartdata$HeartDisease,heartdata$AlcoholDrinking)
+#dri
+#No drinking, no heart disease
+#dri[1]
+#dri[1]/(dri[1]+dri[2])
+#No drinking, heart disease
+#dri[2]
+#dri[2]/(dri[1]+dri[2])
+#Drinking, no heart disease
+#dri[3]
+#dri[3]/(dri[3]+dri[4])
+#Drinking, heart disease
+#dri[4]
+#dri[4]/(dri[3]+dri[4])
+xkabledply(dri, title = paste("Heart Disease vs. Drinking:" ) )
+
+dia<-table(heartdata$HeartDisease,heartdata$Diabetic)
+#dia
+xkabledply(dia, title = paste("Heart Disease vs. Diabetes:" ) )
+
+stro<-table(heartdata$HeartDisease,heartdata$Stroke)
+#stro
+xkabledply(stro, title = paste("Heart Disease vs. Stroke:" ) )
+
+wal<-table(heartdata$HeartDisease,heartdata$DiffWalking)
+#wal
+xkabledply(wal, title = paste("Heart Disease vs. Difficulty Walking:" ) )
+
+phy<-table(heartdata$HeartDisease,heartdata$PhysicalActivity)
+#phy
+xkabledply(phy, title = paste("Heart Disease vs. Physical Activity:" ) )
+
+ast<-table(heartdata$HeartDisease,heartdata$Asthma)
+#ast
+xkabledply(ast, title = paste("Heart Disease vs. Asthma:" ) )
+
+kid<-table(heartdata$HeartDisease,heartdata$KidneyDisease)
+#kid
+xkabledply(kid, title = paste("Heart Disease vs. Kidney Disease:" ) )
+
+ski<-table(heartdata$HeartDisease,heartdata$SkinCancer)
+#ski
+xkabledply(ski, title = paste("Heart Disease vs. Skin Cancer:" ) )
+```
+
+These are various tables which compare factor variables with instances of heart disease. To summarize briefly, there were more instances of heart disease with people who had smoked, were heavy drinkers, had a stroke, had difficulty walking, were not physically active, had asthma, had kidney disease, had diabetes, and had skin cancer. 
+
+```{r}
+# Heart disease and BMI
+
+ggplot(heartdata, aes(x=HeartDisease, y=BMI, fill=HeartDisease)) + geom_boxplot(outlier.shape = NA)+ggtitle("Heart Disease by BMI")+ylim(15,45)
+```
+
+This boxplot looks at the distribution of BMI values for people with and without heart disease. The median BMI was 27.3 for people without heart disease and 28.3 for people with heart disease.
+
+```{r}
+# Heart disease and Age
+
+ggplot(heartdata, aes(x=HeartDisease, y=Age, fill=HeartDisease)) + geom_boxplot(outlier.shape = NA)+ggtitle("Heart Disease by Age")+coord_flip()
+
+agelist <- sort(unique(heartdata$Age))
+Age <- c()
+PositiveMale <- c()
+PositiveFemale <- c()
+TotalMale <- c()
+TotalFemale <- c()
+Male <- c()
+Female <- c()
+Sex <- c()
+Positive <- c()
+Total <- c()
+
+for (x in 1:length(agelist)){
+  Age <- c(Age,agelist[x])
+  PositiveMale <- c(PositiveMale, nrow(subset(heartdata,Age==agelist[x] & HeartDisease=="Yes" & Sex=="Male")))
+  PositiveFemale <- c(PositiveFemale, nrow(subset(heartdata,Age==agelist[x] & HeartDisease=="Yes" & Sex=="Female")))
+  TotalMale <- c(TotalMale, nrow(subset(heartdata,Age==agelist[x] & Sex=="Male")))
+  TotalFemale <- c(TotalFemale, nrow(subset(heartdata,Age==agelist[x] & Sex=="Female")))
+  Male <- c(Male,"Male")
+  Female <- c(Female, "Female")
+}
+
+Sex <- c(Male,Female)
+Positive <- c(PositiveMale,PositiveFemale)
+Total <- c(TotalMale,TotalFemale)
+agedata <- data.frame(Age, Positive, Total, Sex)
+agedata['Percentage'] <- 100*Positive/Total
+agedata$Sex <- factor(agedata$Sex,levels=c("Male","Female"))
+
+ggplot(agedata, aes(x=Age,y=Percentage,fill=Sex)) + geom_area(position="identity") +scale_fill_manual(values=c("blue","magenta")) + ggtitle("Heart Disease by Age and Sex")
+```
+
+These two plots look at instances of heart disease compared to both age and sex. The median age of people with heart disease was 70 years versus 55 years for people without. The area plot demonstrates an increase in the percentage of people with heart disease as their age increases and also shows that men are more likely to have heart disease than women.
+
+```{r}
+# Heart disease versus gen health
+
+ggplot(posdis, aes(x=GenHealth,fill=GenHealth)) + geom_bar()+ggtitle("General Health for People With Heart Disease")
+
+ggplot(negdis, aes(x=GenHealth,fill=GenHealth)) + geom_bar()+ggtitle("General Health for People Without Heart Disease")
+
+ggplot(heartdata,aes(GenHealth,Age,fill=HeartDisease))+geom_split_violin()+ggtitle("Age and General Health for People With and Without Heart Disease")
+```
+
+These two bar graphs and split violin plot look at general health for people with and without heart disease. The most common response was "Good" health for people with heart disease and "Very good" for people without heart disease. The violin plot confirms the relationship between heart disease and age while showing the distribution of people in each health category versus age in each case.
+
+```{r}
+# Heart disease vs. race and age
+
+ggplot(heartdata,aes(Race,Age,fill=HeartDisease))+geom_split_violin()+ggtitle("Age and Race for People With and Without Heart Disease")
+
+rac <- table(heartdata$HeartDisease,heartdata$Race)
+Race <- c("White","Hispanic","Black","Asian","Native","Other")
+Percentage <- c(100*rac[2]/(rac[1]+rac[2]),100*rac[4]/(rac[3]+rac[4]),100*rac[6]/(rac[5]+rac[6]),100*rac[8]/(rac[7]+rac[8]),100*rac[10]/(rac[11]+rac[10]),100*rac[12]/(rac[11]+rac[12]))
+racedata <- data.frame(Race,Percentage)
+racedata$Race <- factor(racedata$Race,levels=c("White","Hispanic","Black","Asian","Native","Other"))
+
+ggplot(racedata,aes(x=Race,y=Percentage,fill=Race))+geom_bar(stat="identity")+ggtitle("Percentage of People With Heart Disease")
+```
+
+This split violin plot and accompanying bar graph look at race and age versus heart disease. The violin plot shows the unexpected result that non-white people report having heart disease at younger ages when compared to white people. The bar graph shows that a higher percentage of white people get heart disease (9.2%) and a lower percentage of Asian people (3.3%) have heart disease, with the other races falling somewhere between those two values.
+
+## Smart Question: What variables affect mental health?
+
+```{r}
+# Mental health
+
+heartdata2 <- heartdata
+heartdata2 <- heartdata2[heartdata2$MentalHealth != 0,]
+heartdata2$SleepTime <-ifelse(heartdata2$SleepTime<7,"Too little",ifelse(heartdata2$SleepTime>9,"Too much","Recommended"))
+heartdata2$Sleep <- factor(heartdata2$SleepTime,levels=c("Too little","Recommended","Too much"))
+
+ggplot(heartdata2, aes(x=Smoking, y=MentalHealth, fill=Smoking)) + geom_boxplot(outlier.shape = NA)+ggtitle("Mental Health for Smokers and Non-Smokers")
+
+ggplot(heartdata2, aes(x=AlcoholDrinking, y=MentalHealth, fill=AlcoholDrinking)) + geom_boxplot(outlier.shape = NA)+ggtitle("Mental Health for Drinkers and Non-Drinkers")
+
+ggplot(heartdata2, aes(x=PhysicalActivity, y=MentalHealth, fill=PhysicalActivity)) + geom_boxplot(outlier.shape = NA)+ggtitle("Mental Health versus Physical Activity")
+
+ggplot(heartdata2, aes(x=Sleep, y=MentalHealth, fill=Sleep)) + geom_boxplot(outlier.shape = NA)+ggtitle("Mental Health versus Sleep")
+```
+
+These four boxplots look at what variables affect mental health. It should be noted that since over 60% of total recipients reported 0 days of poor mental health, those instances were omitted, so these plots look at people who have reported at least 1 day of poor mental health. They show that people have less poor mental health days when they don't smoke, aren't heavy drinkers, are physically active, and get the recommended amount of sleep (7 to 9 hours per night).
+
+## Smart Question: Does BMI have any effect on physical health?
+
+```{r}
+# BMI and health
+
+ggplot(heartdata, aes(x=GenHealth, y=BMI, fill=GenHealth)) + geom_boxplot(outlier.shape = NA)+ggtitle("General Health by BMI")+ylim(15,45)
+```
+
+This boxplot compares general health categories to recorded BMI. Those who reported "Excellent" health had the lowest median BMI (25.4) and those who reported "Fair" health had the highest median BMI (29.4).
