@@ -463,4 +463,238 @@ phyhealth_drinking
 ```
 Smoking and drinking variables do not have enough strong correlation with physical health.Here, Cor value of smoking is 0.1153524, drinking alcohol is -0.01725429.Smoking has more stronger correlation than drinking alcohol with physical health where drinking alcohol is negatively correlated.
 
+# Model building
+## SMART Question
+
+*What variables affect instances of heart disease?*
+
+Our goal is to find out the people who are likely to have heart disease in the future, so we can take some actions like a more detailed physical examination before the conditions become worse.
+
+## Pre-processing amd balancing the data
+
+The first step is to do some pre-processing work.
+
+First, because I will use *bestglm::bestglm()*, a feature selection method, to decide which variables are essential and which are not, I must clean the dataset with the target variable renamed y and all other unused variables removed from the dataset. So I put the HeartDisease column at the end of the dataset and renamed it y.
+
+Second, considering that there are too few rows with the value "Yes (during pregnancy)" in the Diabetic variable, I combine the value "Yes (during pregnancy)" and "Yes" together in the Diabetic variable.
+
+These are the two pre-processing steps in the model building part.
+
+```{r include=FALSE}
+heartdata2 <- data.frame(read.csv("heart_2020_cleaned.csv"))
+heartdata2$Smoking <- as.factor(heartdata2$Smoking)
+heartdata2$AlcoholDrinking <- as.factor(heartdata2$AlcoholDrinking)
+heartdata2$Stroke <- as.factor(heartdata2$Stroke)
+heartdata2$DiffWalking <- as.factor(heartdata2$DiffWalking)
+heartdata2$Sex <- as.factor(heartdata2$Sex)
+heartdata2$Race <- as.factor(heartdata2$Race)
+heartdata2$PhysicalActivity <- as.factor(heartdata2$PhysicalActivity)
+heartdata2[heartdata2$GenHealth == 'Poor', "GenHealth"] <- 0
+heartdata2[heartdata2$GenHealth == 'Fair', "GenHealth"] <- 1
+heartdata2[heartdata2$GenHealth == 'Good', "GenHealth"] <- 2
+heartdata2[heartdata2$GenHealth == 'Very good', "GenHealth"] <- 3
+heartdata2[heartdata2$GenHealth == 'Excellent', "GenHealth"] <- 4
+#heartdata2$GenHealth <- as.factor(heartdata2$GenHealth)
+heartdata2$GenHealth <- as.numeric(heartdata2$GenHealth)
+heartdata2$Asthma <- as.factor(heartdata2$Asthma)
+heartdata2$KidneyDisease <- as.factor(heartdata2$KidneyDisease)
+heartdata2$SkinCancer <- as.factor(heartdata2$SkinCancer)
+heartdata2$AgeCategory <- gsub(" or older","-4",as.character(heartdata2$AgeCategory))
+heartdata2$LoAge <- as.numeric(substr(heartdata2$AgeCategory,1,2))
+heartdata2$rand <- sample(0:4,size=nrow(heartdata2),replace=T)
+heartdata2$Age <- with(heartdata2,LoAge+rand)
+heartdata2 <- subset(heartdata2,select=-c(AgeCategory,LoAge,rand))
+```
+
+```{r}
+heartdata2[heartdata2$Diabetic == 'Yes (during pregnancy)', "Diabetic"] <- 'Yes'
+heartdata2$Diabetic <- as.factor(heartdata2$Diabetic)
+heartdata2$y <- as.factor(heartdata2$HeartDisease)
+heartdata2 = subset(heartdata2, select = -c(HeartDisease))
+
+# str(heartdata2)
+```
+
+After preprocessing, I need to balance the data. Let us look at the proportion of heart disease data before we continue our research.
+
+```{r results='markup'}
+table( heartdata2$y )
+```
+
+We can find that the dataset is very unbalanced. Only 8.6% of the dataset has the value of 1 for y (HeartDisease). Considering that the dataset is large, I use undersampling methods to balance the dataset. After the balancing work, the value zero and value one of y are the same. And there is a reference for different balancing methods:  https://www.analyticsvidhya.com/blog/2016/03/practical-guide-deal-imbalanced-classification-problems/
+
+```{r}
+loadPkg("ROSE")
+data_balanced_under <- ovun.sample(y ~ ., data = heartdata2, method = "under", N = 27373*2, seed = 1)$data
+rm(heartdata2)
+unloadPkg("ROSE") 
+```
+
+We can find that the data is really balanced now.
+```{r results='markup'}
+table( data_balanced_under$y )
+```
+
+Before we begin the logistic regression model, let us look at the structure of the dataset now.
+```{r results='markup'}
+str(data_balanced_under)
+```
+
+## logistic regression model
+
+I split the dataset into two parts to train and evaluate the model later. 80% of the dataset will be used to train the model, and the rest 20% will be used to test the model's accuracy. I will use *createDataPartition* in the *caret* library to split the dataset.
+```{r}
+loadPkg("caret")
+set.seed(4321)
+test <- createDataPartition( data_balanced_under$y, p = .2, list = FALSE )
+data_train <- data_balanced_under[ -test, ]
+data_test  <- data_balanced_under[ test, ]
+unloadPkg("caret") 
+```
+
+After I split the data, the training dataset is used to build the model. First, I use all variables as independent variables and make a model as below.
+```{r results='markup'}
+model_glm <- glm( y ~ ., data = data_train, family = binomial(logit) )
+summary_glm <- summary(model_glm)
+summary_glm
+```
+
+We can find from the model that the p-values of Race and PhysicalActivity are more significant than 0.05, which means these two variables are insignificant. So just drop these two variables and make the second logistic regression model again.
+
+```{r results='markup'}
+model2_glm <- glm( y ~ . - Race - PhysicalActivity, data = data_train, family = binomial(logit) )
+summary2_glm <- summary(model2_glm)
+summary2_glm
+```
+
+
+We will quickly check two things for this model. The first is the p-values. P-values below .05 indicate significance, which means the coefficient or so-called parameters that our model estimates are reliable. And second, the pseudo R square. This value ranging from 0 to 1, indicates how much variance our model explains.
+
+We can find that all the p-values of the model indicate significance, meaning that our model is a legitimate one. An R square of 0.29 tells that 29 percent of the variance is explained.
+
+```{r}
+list( summary2_glm$coefficient, 
+      round( 1 - ( summary2_glm$deviance / summary2_glm$null.deviance ), 2 ) )
+```
+
+After we finish this, we can have a look at the Variance Inflation Factor (vif).
+
+* When 1 < vif < 5, it means the variables are mildly correlated. It's acceptable.
+* When 5 < vif < 10, it means moderately correlated, and it also can be acceptable.
+* When vif > 10, it's not acceptable.
+
+```{r results='markup'}
+vif_md2 = faraway::vif(model2_glm)
+vif_md2
+```
+
+We can find that some vif values are larger than 10, which means these variables are highly correlated and not acceptable. So I tried to drop one variable at a time. In the meantime, look at the p-value to ensure that the variables are significant. In the end, I got the model below:
+
+```{r results='markup'}
+model3_glm <- glm( y ~ . - Race - PhysicalActivity - Age - Asthma - PhysicalHealth, data = data_train, family = binomial(logit) )
+summary3_glm <- summary(model3_glm)
+summary3_glm
+```
+
+```{r results='markup'}
+vif_md3 = faraway::vif(model3_glm)
+vif_md3
+```
+
+And also check the vif. We can find that all the vif values are all below 10.
+
+
+## Feature selection
+In this part, I want to use feature selection to find out the most suitable variables from our current model. Unfortunately, the training dataset has more than 40,000 rows, which is significant and takes much time to run. So I changed the test dataset to make the feature selection. The test dataset has the same data structure but fewer rows.
+
+```{r}
+data_feature_selection = subset(data_test, select = -c(Race, PhysicalActivity, PhysicalHealth, Age, Asthma))
+str(data_feature_selection)
+```
+
+Although lacking intuitive visual presentation of results, *bestglm::bestglm()* can handle logistic regression. So I use it to do the feature selection.
+
+```{r results='markup'}
+loadPkg("bestglm")
+res.bestglm <- bestglm(Xy = data_feature_selection, family = binomial,
+            IC = "AIC",                 # Information criteria for
+            method = "backward")
+summary(res.bestglm)
+res.bestglm$BestModels
+summary(res.bestglm$BestModels)
+unloadPkg("bestglm") 
+unloadPkg("leaps") 
+```
+
+Through the feature selection, we can find that the best model has all these 13 variables, and its CIA (Akaike Information Criterion) is 12062, which is the lowest among these models. It's the model which we built before.
+
+
+## Model Evaluation
+
+In this part, I will use AUC and confusion matrix to evalute the model.
+
+### ROC and AUC
+
+Receiver-Operator-Characteristic (ROC) curve and Area-Under-Curve (AUC) measures the true positive rate (or sensitivity) against the false positive rate (or specificity). The area-under-curve is always between 0.5 and 1. Values higher than 0.8 is considered good model fit.  
+```{r roc_auc}
+loadPkg("pROC") # receiver operating characteristic curve, gives the diagnostic ability of a binary classifier system as its discrimination threshold is varied. The curve is on sensitivity/recall/true-positive-rate vs false_alarm/false-positive-rate/fall-out.
+prob=predict(model3_glm, type = "response" )
+data_train$prob=prob
+h <- roc(y~prob, data=data_train)
+auc(h) # area-under-curve prefer 0.8 or higher.
+plot(h)
+# unloadPkg("pROC")
+```
+
+The AUC of the model is 0.795, which is a little bit lower than 0.8. Because our model looks suitable and we have all the needed features, I suppose that the data causes the lower AUC value. 
+
+
+#### Confusion matrix 
+
+We can have a look of the Confusion matrix.
+
+```{r confusionMatrix, results='markup'}
+# install.packages("regclass")
+library("regclass")
+# confusion_matrix(admitLogit)
+xkabledply( confusion_matrix(model3_glm), title = "Confusion matrix from Logit Model" )
+unloadPkg("regclass")
+```
+
+We can find from the confusion matrix that Precision is 14941/(5252+14941) = 0.74, which means the valid of the result is 74%. And the recall is 14941/(6957+14941) = 0.68, which means how complete the results are 68%.
+
+In our model, actually, I think the recall is more important, because FN means heart disease patients who are missed by our model, which can cause a harmful result.
+
+
+```{r results='markup'}
+loadPkg("InformationValue")
+predicted = predict(model3_glm, data_test, type = "response")
+
+confusionMatrix(data_test$y, predicted)
+unloadPkg("InformationValue")
+```
+
+Then we can use the test dataset to checkout whether the model is good to use. So I used the data_test to make a prediction and calculate the confusion matrix by the test dataset. The Precision is 3722/(1255+3722) = 0.75 and the recall is 3722/(1753+3722) = 0.68.
+
+The Precision value and recall value of the test dataset is similiar to the train dataset, which means our model is reliable to predict the heart disease.
+
+
+## Interpretation and Reporting
+
+We’ll return to our logistic regression model for a minute, and look at the estimated parameters (coefficients). Since the model’s parameter the recorded in logit format, I transformed it into odds ratio so that it’ll be easier to interpret. After transforming, I sorted the variables by the coefficient values.
+
+```{r results='markup'}
+loadPkg("broom")
+
+coefficient <- tidy(model3_glm)[ , c( "term", "estimate", "statistic" ) ]
+
+# transfrom the coefficient to be in probability format 
+coefficient$estimate <- exp( coefficient$estimate )
+coefficient[sort(abs(coefficient$estimate),decreasing=T,index.return=T)[[2]],]
+
+unloadPkg("broom")
+```
+
+We can find from the table that other diseases (stroke, kidney disease, diabetic, SkinCancer), general health conditions, sex, DiffWalking (serious difficulty walking or climbing stairs), and smoking habit all largely influence the possibility of heart disease. It's a little weird that drinking alcohol will reduce the possibility of heart disease. As we always think, drinking is not a good habit, maybe the data also includes people who drink some little wine.
+
 
