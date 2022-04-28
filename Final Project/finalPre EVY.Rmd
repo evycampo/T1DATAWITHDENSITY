@@ -58,7 +58,8 @@ str(heartdata)
 ```
 
 
-Classification and Regression Trees
+#Classification Trees
+##First Classification Tree
 
 ```{r}
 #Creating new heartdata DF with different name
@@ -66,18 +67,22 @@ library(dplyr)
 clean_heart<-heartdata
 
 ```
+For the purposes of the decision tree, observations were assigned for the variable mental health with categorical values "Yes" and "No". Its initial values range between 1 and 30 as a response to how many days on the previous month people interviewed felt their mental health was not good. In this sense, a logic if else argument responds to the condition if people felt their mental health was no good for 15 or more days then assign value "Yes", otherwise assign value "No" (MentalHealth>=15, "No", "Yes").
 
 ```{r}
 #Assigning ifelse logic to Mental Health. See if the person is not feeling ok in 15 days or more during the month
 HighMH = ifelse(clean_heart$MentalHealth>=15, "No", "Yes")
 clean_heart = data.frame(clean_heart, HighMH)
 ```
+This procedure was pertinent for further process on creating the decision tree with the relevant variables. In this first decision tree the following variables were selected: HighMh, Smoking, Sex, AlcoholDrinking, and PhysicalActivity. 
 
 ```{r}
 #Selecting only the meaningful columns for prediction
 clean_heart <- select(clean_heart, HighMH, Smoking, Sex, AlcoholDrinking, PhysicalActivity)
 clean_heart <- mutate(clean_heart, HighMH=factor(HighMH), Smoking=factor(Smoking), Sex=factor(Sex), PhysicalActivity=factor(PhysicalActivity))
 ```
+
+After sub setting the data a training model was created to predict the class or value of the target variable, which in this case is Smoking, by learning simple decision rules inferred from this data training.
 
 ```{r}
 library('rpart.plot')
@@ -109,12 +114,16 @@ dim(data_test)
 #test = subset(clean_heart, sample==FALSE)
 
 ```
+With the training dataset created, a tree was built responding to smoking as the target value. The results show 13 different nodes for each variable. The actual tree starts with the root node labeled 1). observations and a default decision of No. There are 107000 observations with Yes as the decision, so these are lost if we make the decision No for all observations. The probability of No is reported as 0.58 and of Yes us 0.41. 
+The root node is split into two branches, nodes number 2 and 4. For node number 2, the split corresponds to those observations for which AlcoholDrinking is equal to No. This accounts for 238097 observations and whilst 96200 of them are Yes. The majority (with a proportion of 0.596) are No. 
+Going forward with interpreting the nodes, it is concluded that with a proportion of 60% people who drinks alcohol, and out of this 42% are male and practice physical activity, 41% percent reported more than 15 days in the prior month where their mental health seemed to be affected.
 
 ```{r}
 #Training the Decision Tree Classifier
 tree <- rpart(Smoking ~., data=data_train, method="class", control = rpart.control(minsplit = 1, minbucket = 1, cp = 0.001))
 print(tree)
 ```
+
 ```{r}
 summary(tree)
 ```
@@ -127,10 +136,8 @@ library(RColorBrewer)				# Color selection for fancy tree plot
 library(party)					# Alternative decision tree algorithm
 library(partykit)				# Convert rpart object to BinaryTree
 library(caret)	
-plot(tree, uniform=TRUE, main="Classification Tree for Smoking")
-text(tree, use.n=TRUE, all=TRUE, cex=.8)
 ```
-
+Graphically the tree looks like the following plot, and this visually represents, as another conclusion, that starting on node 5 representing 51% of people who do not workout at all throughout the month, there are 45% female from whom 42% felt their mental health was not good for 15+ days in the past 30 days.
 ```{r}
 col <- c("#FD8D3C", "#FD8D3C", "#FD8D3C", "#BCBDDC",
          "#FDD0A2", "#FD8D3C", "#BCBDDC")
@@ -139,92 +146,29 @@ prp(tree, type=2, extra=104, nn=TRUE, ni=TRUE, fallen.leaves=TRUE,
 
 #we can alsos change extra=104
 ```
-
+The following plot is more visually appealing and resumes the conclusions described above. 
 ```{r}
 library("RColorBrewer")
 fancyRpartPlot(tree, main="Classification Tree for Smoking", palettes="PuRd", type=2)
 
 ```
+Additionally, from the tree fit function specific observations were selected to obtain the prediction and the rule used to make that prediction based on the target variable. The results are the following:
 
 ```{r}
 #I created set of rules from the decision tree to see the probabilities per rule
 rpart.rules(tree)
 #asRules(tree)
 ```
-```{r}
-t_pred = predict(tree,data_test,type="class")
-confMat <- table(data_test$class,t_pred)
-
-```
 
 
+##Second Classification Tree
 
-```{r}
-#Confusion Matrix for evaluating the model
-prp(tree)
-```
+A second classification tree was built to understand the behavior of different variables interacting with the target variable smoking.The variables used to construct the model were: Age, Sleep Time, Race, Heart Disease, and Physical Activity.
 
-
-
-
-
-
-####------------------------###############################
-
-
-
-
-```{r}
-
-clean_heart[clean_heart=="0"]<-"0-10"
-clean_heart[clean_heart=="1"]<-"0-10"
-clean_heart[clean_heart=="2"]<-"0-10"
-clean_heart[clean_heart=="3"]<-"0-10"
-clean_heart[clean_heart=="4"]<-"0-10"
-clean_heart[clean_heart=="5"]<-"0-10"
-clean_heart[clean_heart=="6"]<-"0-10"
-clean_heart[clean_heart=="7"]<-"0-10"
-clean_heart[clean_heart=="8"]<-"0-10"
-clean_heart[clean_heart=="9"]<-"0-10"
-clean_heart[clean_heart=="10"]<-"0-10"
-
-clean_heart[clean_heart=="11"]<-"11-20"
-clean_heart[clean_heart=="12"]<-"11-20"
-clean_heart[clean_heart=="13"]<-"11-20"
-clean_heart[clean_heart=="14"]<-"11-20"
-clean_heart[clean_heart=="15"]<-"11-20"
-clean_heart[clean_heart=="16"]<-"11-20"
-clean_heart[clean_heart=="17"]<-"11-20"
-clean_heart[clean_heart=="18"]<-"11-20"
-clean_heart[clean_heart=="19"]<-"11-20"
-clean_heart[clean_heart=="20"]<-"11-20"
-
-clean_heart[clean_heart=="21"]<-"21-30"
-clean_heart[clean_heart=="22"]<-"21-30"
-clean_heart[clean_heart=="23"]<-"21-30"
-clean_heart[clean_heart=="24"]<-"21-30"
-clean_heart[clean_heart=="25"]<-"21-30"
-clean_heart[clean_heart=="26"]<-"21-30"
-clean_heart[clean_heart=="27"]<-"21-30"
-clean_heart[clean_heart=="28"]<-"21-30"
-clean_heart[clean_heart=="29"]<-"21-30"
-clean_heart[clean_heart=="30"]<-"21-30"
-
-```
-
-####------------------------###############################
-
-
-
-
-
-
-#####!!!!!!!!!!!!!!!!!!!!!!!!!!!################3
-Classification and Regression Trees
 
 ```{r}
 #Creating new heartdata DF with different name
-library(dplyr)
+
 clean_heart1<-heartdata
 
 ```
@@ -234,20 +178,22 @@ clean_heart1$SleepTime=as.numeric(clean_heart1$SleepTime)
 clean_heart1$Age=as.numeric(clean_heart1$Age)
 
 ```
+For this classification tree, the variable Age was turned into ‘ifelse logic’ to see the pattern for people of 30+ years old, and the variable name assigned was: Age30Plus.
+
 
 ```{r}
 #Assigning ifelse logic to Mental Health. See if the person is not feeling ok in 15 days or more during the month
 AvSleep = ifelse(clean_heart1$SleepTime>=7, "No", "Yes")
 clean_heart1 = data.frame(clean_heart1, AvSleep)
 ```
-
+Similarly, the variable sleep was turned into ‘ifelse logic’ to see the pattern for people sleeping 7+ hours, and the variable name assigned was AvSleep.
 ```{r}
 #Assigning ifelse logic to Mental Health. See if the person is not feeling ok in 15 days or more during the month
 Age30Plus = ifelse(clean_heart1$Age>=30, "No", "Yes")
 clean_heart1 = data.frame(clean_heart1, Age30Plus)
 ```
 
-
+After sub setting the data a training model was created to predict the class or value of the target variable, which in this case is Smoking, by learning simple decision rules inferred from this data training.
 ```{r}
 #Selecting only the meaningful columns for prediction
 clean_heart1 <- select(clean_heart1, Smoking, Age30Plus, AvSleep, Race, HeartDisease, PhysicalActivity)
@@ -285,6 +231,9 @@ dim(data_test1)
 
 ```
 
+With the training dataset created, a tree was built responding to smoking as the target value. The results show 9 different nodes, starting with the root node labeled 1) observations and a default decision of No and this accounts for 58% of the data. This node splits into those who are 30 or more (22%) and those who are less than 30 years old (44%). Following the results, node 6 shows that 57% don’t have any heart disease, which leads to node 12 where 40% perform some sort of physical activity, and 49% do not perform any physical activity at all, which can be seen in node 13. Meanwhile, nodes 25 and 27 correspond to races from which node labeled as 26 indicates that 38% are Asian, Black or Hispanic, and node labeled 27 indicates54% are American Indian, Alaskan native, white or other. 
+
+
 ```{r}
 #Training the Decision Tree Classifier
 tree1 <- rpart(Smoking ~., data=data_train1, method="class", control = rpart.control(minsplit = 1, minbucket = 1, cp = 0.001))
@@ -294,18 +243,8 @@ print(tree1)
 ```{r}
 summary(tree1)
 ```
+Graphically the tree looks like the following plot, and this visually represents, as another conclusion, that surprisingly from node 3, for those less than 30 years old, there is 59% chance of having a heart disease without accounting the other variables.
 
-```{r}
-library(rpart)				        # Popular decision tree algorithm
-library(rattle)					# Fancy tree plot
-library(rpart.plot)				# Enhanced tree plots
-library(RColorBrewer)				# Color selection for fancy tree plot
-library(party)					# Alternative decision tree algorithm
-library(partykit)				# Convert rpart object to BinaryTree
-library(caret)	
-plot(tree1, uniform=TRUE, main="Classification Tree for Age")
-text(tree1, use.n=TRUE, all=TRUE, cex=.8)
-```
 
 ```{r}
 col <- c("#FD8D3C", "#FD8D3C", "#FD8D3C", "#BCBDDC",
@@ -315,29 +254,18 @@ prp(tree1, type=2, extra=104, nn=TRUE, ni=TRUE, fallen.leaves=TRUE,
 
 #we can alsos change extra=104
 ```
-
+The following plot is more visually appealing and resumes the conclusions described above. 
 ```{r}
 library("RColorBrewer")
 fancyRpartPlot(tree1, main="Classification Tree for Smoking", palettes="PuRd", type=2)
 
 ```
-
+Additionally, from the tree fit function specific observations were selected to obtain the prediction and the rule used to make that prediction based on the target variable. The results are the following:
 ```{r}
 #I created set of rules from the decision tree to see the probabilities per rule
 rpart.rules(tree1)
 #asRules(tree)
 ```
-```{r, include=T}
 
-```
-
-```
-
-
-
-```{r}
-#Confusion Matrix for evaluating the model
-prp(tree)
-```
 
 
