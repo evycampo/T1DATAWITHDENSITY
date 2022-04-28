@@ -347,3 +347,120 @@ ggplot(heartdata, aes(x=GenHealth, y=BMI, fill=GenHealth)) + geom_boxplot(outlie
 ```
 
 This boxplot compares general health categories to recorded BMI. Those who reported "Excellent" health had the lowest median BMI (25.4) and those who reported "Fair" health had the highest median BMI (29.4).
+
+
+```{r include=FALSE}
+
+heartdata <- data.frame(read.csv("heart_2020_cleaned.csv"))
+
+n=10
+#heartdata <- heartdata[seq(1,nrow(heartdata),n),]
+
+heartdata$HeartDisease <- as.factor(heartdata$HeartDisease)
+heartdata$Smoking <- as.factor(heartdata$Smoking)
+heartdata$AlcoholDrinking <- as.factor(heartdata$AlcoholDrinking)
+heartdata$Stroke <- as.factor(heartdata$Stroke)
+heartdata$DiffWalking <- as.factor(heartdata$DiffWalking)
+heartdata$Sex <- as.factor(heartdata$Sex)
+heartdata$Race <- as.factor(heartdata$Race)
+heartdata$Diabetic <- as.factor(heartdata$Diabetic)
+heartdata$PhysicalActivity <- as.factor(heartdata$PhysicalActivity)
+heartdata$GenHealth <- as.factor(heartdata$GenHealth)
+heartdata$Asthma <- as.factor(heartdata$Asthma)
+heartdata$KidneyDisease <- as.factor(heartdata$KidneyDisease)
+heartdata$SkinCancer <- as.factor(heartdata$SkinCancer)
+
+heartdata$AgeCategory <- gsub(" or older","-4",as.character(heartdata$AgeCategory))
+heartdata$LoAge <- as.numeric(substr(heartdata$AgeCategory,1,2))
+heartdata$rand <- sample(0:4,size=nrow(heartdata),replace=T)
+heartdata$Age <- with(heartdata,LoAge+rand)
+heartdata <- subset(heartdata,select=-c(AgeCategory,LoAge,rand))
+
+str(heartdata)
+
+```
+# Testing
+
+## Chi-Square Test
+
+The Chi-square test of independence is a statistical hypothesis test used to determine whether two variables are likely to be related or not. We conduct couple of chi-square test to check the variables are independent or not.
+
+### Is heart disease data related to gender?
+
+We want to check the Heart Disease variable is related to the gender variable. We conduct a chi-square test to check whether Heart Disease and Sex are independent. 
+H0: Heart Disease and Sex are independent from each other. 
+H1: Heart Disease and Sex are not independent from each other.
+
+```{r, results="markup"}
+sextable= table(heartdata$HeartDisease,heartdata$Sex)
+
+ezids::xkabledply(sextable, title="Contingency table for Heart Disease  vs Gender ")
+chitest_sex = chisq.test(sextable)
+chitest_sex
+
+```
+A contingency table is created with the two variables to do the chi-square test.Contingency table shows how many women and men are suffering heart disease, how many women and men are not suffering heart disease. According to table men are more suffering heart disease compare to women. Chi-square has found weather the variables on the data set are realted or not. Here,From the chi-square test P value is 2.2e-16.P value less than 0.05. That reject null Hypothesis. That's mean heart disease data and gender are related to each other.
+
+### Does the data support that race very much affects heart disease?
+
+We want to check the Heart Disease variable is related to the Race variable. We conduct a another chi-square test to check whether Heart Disease and Race are independent. 
+H0: Heart Disease and race are independent from each other. 
+H1: Heart Disease and race are not independent from each other.
+
+```{r, results="markup"}
+racetable = xtabs(~ Race+HeartDisease, data =heartdata )
+racetable
+chitest_race = chisq.test(racetable)
+chitest_race
+```
+Table shows how many people are suffering heart disease and not suffering heart disease according to race. According to table White are more suffering heart disease compare to other race. Chi-square has found weather the variables on the data set are related or not. Here,From the chi-square test P value is 2.2e-16. P value less than 0.05. That reject null Hypothesis. That's mean data supports race has effect on heart disease.
+
+### Does the data support that Heart Disease effect on Gen Health?
+
+The last chi-square test is to check the data heart disease is independent to general health.
+H0: Heart Disease and Gen Health are independent from each other. 
+H1: Heart Disease and Gen Health are not independent from each other.
+```{r, results="markup"}
+gentable= table(heartdata$HeartDisease,heartdata$GenHealth)
+ezids::xkabledply(gentable, title="Contingency table for Heart Disease  vs Gen Health ")
+chitest_gen = chisq.test(gentable)
+chitest_gen
+```
+The contingency table shows the number of active heart disease patient are heaving general health condition in five categories. Chi-square has found weather the variables on the data set are related or not. Here,From the chi-square test P value is 2.2e-16. Here, P value less than 0.05. That reject null Hypothesis. That's mean data support that Heat Disease effect on Gen Health
+
+## T-test
+
+### What is the average age people are suffering from heart disease?
+
+On our data set Heart Disease is factor variable and Age is numeric variable. To find the average age of people having heart disease T-test is chosen for. A t-test is a  test compares the mean of your sample data to a known value. By conducting t-test, average  value (mean value) of people's age having heart disease has been found. Mean values from t-test are analyzed to find the  average age of people are suffering heart diseases. 
+```{r, results="markup"}
+ heart_disease_on=subset(heartdata,HeartDisease=="Yes")
+ttest_age <- t.test(heart_disease_on$Age)
+ttest_age
+```
+Here, we have subset the dataset to separate the values where HeartDisease factor variable is Yes. Then conducting the t-test to know the average age.The result shows that, the values Average of heaving heart disease is 68.
+
+## Test For Association
+
+Correlation test is used to evaluate the association between two or more variables.
+Pearson's  can range from −1 to 1. An r of −1 indicates a perfect negative linear relationship between variables, an r of 0 indicates no linear relationship between variables, and an r of 1 indicates a perfect positive linear relationship between variables.
+
+### What variables affect mental health physical health? In particular, does alcohol drinking, smoking
+
+To know the effect of smoking and drinking on mental and physical health Pearson's method of cor test is used.
+```{r results='markup'}
+menhealth_smoke<-cor.test(heartdata$MentalHealth,as.numeric(heartdata$Smoking), method="pearson")
+menhealth_smoke
+menhealth_drinking<-cor.test(heartdata$MentalHealth,as.numeric(heartdata$AlcoholDrinking), method="pearson")
+menhealth_drinking
+```  
+Smoking and drinking variables do not have enough strong correlation with mental health.Here, Cor value of smoking is 0.08515729, drinking alcohol is 0.05128197.Smoking has more stronger correlation than drinking alcohol with mental health.
+```{r results='markup'}
+phyhealth_smoke<-cor.test(heartdata$PhysicalHealth,as.numeric(heartdata$Smoking), method="pearson")
+phyhealth_smoke
+phyhealth_drinking<-cor.test(heartdata$PhysicalHealth,as.numeric(heartdata$AlcoholDrinking), method="pearson")
+phyhealth_drinking
+```
+Smoking and drinking variables do not have enough strong correlation with physical health.Here, Cor value of smoking is 0.1153524, drinking alcohol is -0.01725429.Smoking has more stronger correlation than drinking alcohol with physical health where drinking alcohol is negatively correlated.
+
+
