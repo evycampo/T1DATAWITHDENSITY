@@ -561,10 +561,10 @@ summary_glm
 
 We can find from the model that the p-values of Race and PhysicalActivity are more significant than 0.05, which means these two variables are insignificant. So just drop these two variables and make the second logistic regression model again.
 
-```{r results='markup'}
+```{r message=FALSE, warning=FALSE}
 model2_glm <- glm( y ~ . - Race - PhysicalActivity, data = data_train, family = binomial(logit) )
 summary2_glm <- summary(model2_glm)
-summary2_glm
+#summary2_glm
 ```
 
 
@@ -573,8 +573,9 @@ We will quickly check two things for this model. The first is the p-values. P-va
 We can find that all the p-values of the model indicate significance, meaning that our model is a legitimate one. An R square of 0.29 tells that 29 percent of the variance is explained.
 
 ```{r}
-list( summary2_glm$coefficient, 
-      round( 1 - ( summary2_glm$deviance / summary2_glm$null.deviance ), 2 ) )
+#list( summary2_glm$coefficient, 
+#      round( 1 - ( summary2_glm$deviance / summary2_glm$null.deviance ), 2 ) )
+round( 1 - ( summary2_glm$deviance / summary2_glm$null.deviance ), 2 )
 ```
 
 After we finish this, we can have a look at the Variance Inflation Factor (vif).
@@ -609,7 +610,7 @@ In this part, I want to use feature selection to find out the most suitable vari
 
 ```{r}
 data_feature_selection = subset(data_test, select = -c(Race, PhysicalActivity, PhysicalHealth, Age, Asthma))
-str(data_feature_selection)
+# str(data_feature_selection)
 ```
 
 Although lacking intuitive visual presentation of results, *bestglm::bestglm()* can handle logistic regression. So I use it to do the feature selection.
@@ -626,17 +627,17 @@ unloadPkg("bestglm")
 unloadPkg("leaps") 
 ```
 
-Through the feature selection, we can find that the best model has all these 13 variables, and its CIA (Akaike Information Criterion) is 12062, which is the lowest among these models. It's the model which we built before.
+The feature selection shows that the best model has all these 13 variables, and its CIA (Akaike Information Criterion) is 12062, which is the lowest among these models. It's the model which we built before.
 
 
 ## Model Evaluation
 
-In this part, I will use AUC and confusion matrix to evalute the model.
+In this part, I will use AUC and confusion matrix to evaluate the model.
 
 ### ROC and AUC
 
-Receiver-Operator-Characteristic (ROC) curve and Area-Under-Curve (AUC) measures the true positive rate (or sensitivity) against the false positive rate (or specificity). The area-under-curve is always between 0.5 and 1. Values higher than 0.8 is considered good model fit.  
-```{r roc_auc}
+Receiver-Operator-Characteristic (ROC) curve and Area-Under-Curve (AUC) measure the true positive rate (or sensitivity) against the false positive rate (or specificity). The area-under-curve is always between 0.5 and 1. Values higher than 0.8 are considered a good model fit.  
+```{r roc_auc, message=FALSE, warning=FALSE}
 loadPkg("pROC") # receiver operating characteristic curve, gives the diagnostic ability of a binary classifier system as its discrimination threshold is varied. The curve is on sensitivity/recall/true-positive-rate vs false_alarm/false-positive-rate/fall-out.
 prob=predict(model3_glm, type = "response" )
 data_train$prob=prob
@@ -666,7 +667,7 @@ We can find from the confusion matrix that Precision is 14941/(5252+14941) = 0.7
 In our model, actually, I think the recall is more important, because FN means heart disease patients who are missed by our model, which can cause a harmful result.
 
 
-```{r results='markup'}
+```{r results='markup', message=FALSE, warning=FALSE}
 loadPkg("InformationValue")
 predicted = predict(model3_glm, data_test, type = "response")
 
@@ -695,7 +696,7 @@ coefficient[sort(abs(coefficient$estimate),decreasing=T,index.return=T)[[2]],]
 unloadPkg("broom")
 ```
 
-We can find from the table that other diseases (stroke, kidney disease, diabetic, SkinCancer), general health conditions, sex, DiffWalking (serious difficulty walking or climbing stairs), and smoking habit all largely influence the possibility of heart disease. It's a little weird that drinking alcohol will reduce the possibility of heart disease. As we always think, drinking is not a good habit, maybe the data also includes people who drink some little wine.
+We can find from the table that other diseases (stroke, kidney disease, diabetic, SkinCancer), general health conditions, sex, DiffWalking (serious difficulty walking or climbing stairs), and smoking habit all largely influence the possibility of heart disease. It's a little weird that drinking alcohol will reduce the possibility of heart disease. As we always think, drinking is not a good habit. Maybe the data also includes people who drink some little wine.
 
 
 ```{r}
@@ -729,6 +730,7 @@ heartdata <- subset(heartdata,select=-c(AgeCategory,LoAge,rand))
 ```
 
 
+
 # Classification Trees
 ## First Classification Tree
 
@@ -755,7 +757,7 @@ clean_heart <- mutate(clean_heart, HighMH=factor(HighMH), Smoking=factor(Smoking
 
 After sub setting the data a training model was created to predict the class or value of the target variable, which in this case is Smoking, by learning simple decision rules inferred from this data training.
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 library('rpart.plot')
 create_train_test <- function(data, size = 0.8, train = TRUE) {
 n_row = nrow(data)
@@ -770,7 +772,7 @@ return (data[-train_sample, ])
 ```
 
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 #Splitting clean_heart into training and testing data
 library(caTools)
 set.seed(123)
@@ -799,7 +801,7 @@ print(tree)
 summary(tree)
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 library(rpart)				        # Popular decision tree algorithm
 library(rattle)					# Fancy tree plot
 library(rpart.plot)				# Enhanced tree plots
@@ -937,3 +939,9 @@ Additionally, from the tree fit function specific observations were selected to 
 rpart.rules(tree1)
 #asRules(tree)
 ```
+
+
+# Conclusion
+
+
+# References
