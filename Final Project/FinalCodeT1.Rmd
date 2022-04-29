@@ -576,7 +576,7 @@ We can find that all the p-values of the model indicate significance, meaning th
 ```{r}
 #list( summary2_glm$coefficient, 
 #      round( 1 - ( summary2_glm$deviance / summary2_glm$null.deviance ), 2 ) )
-round( 1 - ( summary2_glm$deviance / summary2_glm$null.deviance ), 2 )
+# round( 1 - ( summary2_glm$deviance / summary2_glm$null.deviance ), 2 )
 ```
 
 After we finish this, we can have a look at the Variance Inflation Factor (vif).
@@ -614,7 +614,7 @@ data_feature_selection = subset(data_test, select = -c(Race, PhysicalActivity, P
 
 Although lacking intuitive visual presentation of results, *bestglm::bestglm()* can handle logistic regression. Thus, we used it to do the feature selection.
 
-```{r results='markup'}
+```{r results='markup', message=FALSE, warning=FALSE}
 loadPkg("bestglm")
 res.bestglm <- bestglm(Xy = data_feature_selection, family = binomial,
             IC = "AIC",                 # Information criteria for
@@ -641,7 +641,7 @@ loadPkg("pROC") # receiver operating characteristic curve, gives the diagnostic 
 prob=predict(model3_glm, type = "response" )
 data_train$prob=prob
 h <- roc(y~prob, data=data_train)
-auc(h) # area-under-curve prefer 0.8 or higher.
+# auc(h) # area-under-curve prefer 0.8 or higher.
 plot(h)
 # unloadPkg("pROC")
 ```
@@ -778,8 +778,8 @@ set.seed(123)
 
 data_train <- create_train_test(clean_heart, 0.8, train = TRUE)
 data_test <- create_train_test(clean_heart, 0.8, train = FALSE)
-dim(data_train)
-dim(data_test)
+#dim(data_train)
+#dim(data_test)
 
 #sample = sample.split(clean_heart$MentalHealth, SplitRatio = .70)
 #train = subset(clean_heart, sample==TRUE)
@@ -793,11 +793,11 @@ Going forward with interpreting the nodes, it is concluded that with a proportio
 ```{r}
 #Training the Decision Tree Classifier
 tree <- rpart(Smoking ~., data=data_train, method="class", control = rpart.control(minsplit = 1, minbucket = 1, cp = 0.001))
-print(tree)
+#print(tree)
 ```
 
 ```{r}
-summary(tree)
+#summary(tree)
 ```
 
 ```{r message=FALSE, warning=FALSE}
@@ -894,8 +894,8 @@ set.seed(123)
 
 data_train1 <- create_train_test1(clean_heart1, 0.8, train = TRUE)
 data_test1 <- create_train_test1(clean_heart1, 0.8, train = FALSE)
-dim(data_train1)
-dim(data_test1)
+#dim(data_train1)
+#dim(data_test1)
 
 #sample = sample.split(clean_heart$MentalHealth, SplitRatio = .70)
 #train = subset(clean_heart, sample==TRUE)
@@ -909,11 +909,11 @@ With the training dataset created, a tree was built responding to smoking as the
 ```{r}
 #Training the Decision Tree Classifier
 tree1 <- rpart(Smoking ~., data=data_train1, method="class", control = rpart.control(minsplit = 1, minbucket = 1, cp = 0.001))
-print(tree1)
+#print(tree1)
 ```
 
 ```{r}
-summary(tree1)
+#summary(tree1)
 ```
 Graphically the tree looks like the following plot, and this visually represents, as another conclusion, that surprisingly from node 3, for those less than 30 years old, there is 59% chance of having a heart disease without accounting the other variables.
 
