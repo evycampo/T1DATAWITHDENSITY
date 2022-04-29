@@ -64,7 +64,7 @@ getmode <- function(v) {
 Heart disease is one of the most common diseases and a leading cause of death in the United States. This dataset takes data from the CDC for the year 2020 for people with and without heart disease. It includes health-related data including BMI, whether someone is a smoker, the amount of physical activity, age, race, and other variables. Our hope is that by studying how different health variables relate to instances of heart disease, we can determine if there are significant factors that can predict heart disease or are correlated with heart disease. In addition to this, the dataset includes a measure of mental health. We were interested in what factors can affect mental health. For instance, drinking, smoking, and physical activity were predicted to have some impact on overall mental health. Lastly, we want to look at the relation between BMI and physical activity. There have been some recent studies that BMI does not have any correlation to physical health, so we’d like to use this dataset to explore that relation.
 
 ## Background
-
+Healthy habits are defined as various terms that have been found in this database, such as: Eat a plant-based diet, average of sleep, mental health, physical activity and so forth. Furthermore, mental health tends to be related to physical health and this holistic relationship apparently has repercussions in diseases as serious as heart disease. This database shows an important relationship between the variables to know how are the decisions of the people interviewed and to estimate which habits lead to a degraded mental health, a physical health at risk, and aspects that even lead to heart disease. 
 
 
 ## Description of the Dataset
@@ -383,11 +383,11 @@ str(heartdata)
 
 ## Chi-Square Test
 
-The Chi-square test of independence is a statistical hypothesis test used to determine whether two variables are likely to be related or not. We conduct couple of chi-square test to check the variables are independent or not.
+The Chi-square test of independence is a statistical hypothesis test used to determine whether two variables are likely to be related or not. We conduct a couple of chi-square test to check if the variables are independent or not.
 
 ### Is heart disease data related to gender?
 
-We want to check the Heart Disease variable is related to the gender variable. We conduct a chi-square test to check whether Heart Disease and Sex are independent. 
+We want to check if the Heart Disease variable is related to the gender variable. Thus, we conduct a chi-square test to check whether Heart Disease and Sex are independent. 
 H0: Heart Disease and Sex are independent from each other. 
 H1: Heart Disease and Sex are not independent from each other.
 
@@ -399,11 +399,11 @@ chitest_sex = chisq.test(sextable)
 chitest_sex
 
 ```
-A contingency table is created with the two variables to do the chi-square test.Contingency table shows how many women and men are suffering heart disease, how many women and men are not suffering heart disease. According to table men are more suffering heart disease compare to women. Chi-square has found weather the variables on the data set are realted or not. Here,From the chi-square test P value is 2.2e-16.P value less than 0.05. That reject null Hypothesis. That's mean heart disease data and gender are related to each other.
+A contingency table is created with the two variables to conduct the chi-square test. The contingency table shows how many women and men are suffering from heart disease and how many women and men are not suffering from heart disease. According to table, men are more likely to suffer from heart disease than women. The chi-square has found weather the variables on the data set are related to each other or not. From the p-value for the tests,  2.2e-16.P proves to be less than 0.05. Therefore, we reject the null hypothesis, meaning that heart disease  and gender are related to each other.
 
 ### Does the data support that race very much affects heart disease?
 
-We want to check the Heart Disease variable is related to the Race variable. We conduct a another chi-square test to check whether Heart Disease and Race are independent. 
+We want to check if the Heart Disease variable is related to the Race variable. We conduct another chi-square test to check whether Heart Disease and Race are independent. 
 H0: Heart Disease and race are independent from each other. 
 H1: Heart Disease and race are not independent from each other.
 
@@ -413,11 +413,12 @@ racetable
 chitest_race = chisq.test(racetable)
 chitest_race
 ```
-Table shows how many people are suffering heart disease and not suffering heart disease according to race. According to table White are more suffering heart disease compare to other race. Chi-square has found weather the variables on the data set are related or not. Here,From the chi-square test P value is 2.2e-16. P value less than 0.05. That reject null Hypothesis. That's mean data supports race has effect on heart disease.
+The table shows how many people are suffering from heart disease and otherwise according to the race. As stated by the table, white people are more likely to suffer from heart disease compare to other races.
+Additionally, the chi-square looked whether the variables are related or not, and with a p-value of 2.2e-16 we were able to reject null Hypothesis supporting evidence that race has effects on heart disease.
 
-### Does the data support that Heart Disease effect on Gen Health?
+### Does the data support that Heart Disease has an effect on Gen Health?
 
-The last chi-square test is to check the data heart disease is independent to general health.
+The last chi-square test conducted is to check if the variable heart disease is independent to general health.
 H0: Heart Disease and Gen Health are independent from each other. 
 H1: Heart Disease and Gen Health are not independent from each other.
 ```{r, results="markup"}
@@ -426,24 +427,24 @@ ezids::xkabledply(gentable, title="Contingency table for Heart Disease  vs Gen H
 chitest_gen = chisq.test(gentable)
 chitest_gen
 ```
-The contingency table shows the number of active heart disease patient are heaving general health condition in five categories. Chi-square has found weather the variables on the data set are related or not. Here,From the chi-square test P value is 2.2e-16. Here, P value less than 0.05. That reject null Hypothesis. That's mean data support that Heat Disease effect on Gen Health
+The contingency table shows the number of active heart disease patients are heaving general health condition in five categories. The Chi-square is intended to show if the variables are related or not, and with a p-value of 2.2e-16 we reject the null Hypothesis leading to evidence to support that Heart Disease has an effect on Gen Health variable. 
 
 ## T-test
 
 ### What is the average age people are suffering from heart disease?
 
-On our data set Heart Disease is factor variable and Age is numeric variable. To find the average age of people having heart disease T-test is chosen for. A t-test is a  test compares the mean of your sample data to a known value. By conducting t-test, average  value (mean value) of people's age having heart disease has been found. Mean values from t-test are analyzed to find the  average age of people are suffering heart diseases. 
+On our data set Heart Disease is a factor variable and Age is numeric variable. Therefore, to find the average age of people having heart disease we have chosen the T-test for this purpose. A t-test compares the mean of the sample data to a known value. By conducting the t-test, the average  value (mean value) of people's age having heart disease was found. Subsequently, values from t-test are analyzed to find the  average age of people  suffering from heart diseases. 
 ```{r, results="markup"}
  heart_disease_on=subset(heartdata,HeartDisease=="Yes")
 ttest_age <- t.test(heart_disease_on$Age)
 ttest_age
 ```
-Here, we have subset the dataset to separate the values where HeartDisease factor variable is Yes. Then conducting the t-test to know the average age.The result shows that, the values Average of heaving heart disease is 68.
+After sub setting the dataset to split the values where HeartDisease factor variable is Yes, we  conducted the t-test to know the average age.The result shows that the value average of having heart disease is 68.
 
 ## Test For Association
 
-Correlation test is used to evaluate the association between two or more variables.
-Pearson's  can range from −1 to 1. An r of −1 indicates a perfect negative linear relationship between variables, an r of 0 indicates no linear relationship between variables, and an r of 1 indicates a perfect positive linear relationship between variables.
+The correlation test is used to evaluate the association between two or more variables.
+Pearson's  can range from −1 to 1, and an R-squared of −1 indicates a perfect negative linear relationship between variables, an R-squared of 0 indicates no linear relationship between variables, and an R-squared of 1 indicates a perfect positive linear relationship between variables.
 
 ### What variables affect mental health physical health? In particular, does alcohol drinking, smoking
 
@@ -454,14 +455,14 @@ menhealth_smoke
 menhealth_drinking<-cor.test(heartdata$MentalHealth,as.numeric(heartdata$AlcoholDrinking), method="pearson")
 menhealth_drinking
 ```  
-Smoking and drinking variables do not have enough strong correlation with mental health.Here, Cor value of smoking is 0.08515729, drinking alcohol is 0.05128197.Smoking has more stronger correlation than drinking alcohol with mental health.
+Smoking and drinking variables do not have enough strong correlation with mental health. Here, the Cor value of smoking is 0.08515729, drinking alcohol value is 0.05128197.Thus, smoking has a stronger correlation with mental health than drinking alcohol with the same.
 ```{r results='markup'}
 phyhealth_smoke<-cor.test(heartdata$PhysicalHealth,as.numeric(heartdata$Smoking), method="pearson")
 phyhealth_smoke
 phyhealth_drinking<-cor.test(heartdata$PhysicalHealth,as.numeric(heartdata$AlcoholDrinking), method="pearson")
 phyhealth_drinking
 ```
-Smoking and drinking variables do not have enough strong correlation with physical health.Here, Cor value of smoking is 0.1153524, drinking alcohol is -0.01725429.Smoking has more stronger correlation than drinking alcohol with physical health where drinking alcohol is negatively correlated.
+Smoking and drinking variables do not have enough strong correlation with physical health. Here, the Cor value of smoking is 0.1153524, drinking alcohol value is -0.01725429. Thus, smoking has a stronger correlation with physical health than drinking alcohol, as this latter one is negatively correlated.
 
 # Model building
 ## SMART Question
@@ -472,13 +473,13 @@ Our goal is to find out the people who are likely to have heart disease in the f
 
 ## Pre-processing amd balancing the data
 
-The first step is to do some pre-processing work.
+The first step is to perform some pre-processing work.
 
-First, because I will use *bestglm::bestglm()*, a feature selection method, to decide which variables are essential and which are not, I must clean the dataset with the target variable renamed y and all other unused variables removed from the dataset. So I put the HeartDisease column at the end of the dataset and renamed it y.
+First, because we will use *bestglm::bestglm()*, a feature selection method, to decide which variables are essential and which are not, we must clean the dataset with the target variable renamed y and all other unused variables removed from the dataset. Thus, we put the HeartDisease column at the end of the dataset and renamed it as y.
 
-Second, considering that there are too few rows with the value "Yes (during pregnancy)" in the Diabetic variable, I combine the value "Yes (during pregnancy)" and "Yes" together in the Diabetic variable.
+Second, considering that there are few rows with the value "Yes (during pregnancy)" in the Diabetic variable, we combine the value "Yes (during pregnancy)" and "Yes" together in the Diabetic variable.
 
-These are the two pre-processing steps in the model building part.
+The following codes are the two pre-processing steps in the model building part.
 
 ```{r include=FALSE}
 heartdata2 <- data.frame(read.csv("heart_2020_cleaned.csv"))
@@ -515,13 +516,13 @@ heartdata2 = subset(heartdata2, select = -c(HeartDisease))
 # str(heartdata2)
 ```
 
-After preprocessing, I need to balance the data. Let us look at the proportion of heart disease data before we continue our research.
+After preprocessing, we need to balance the data. Let us look at the proportion of heart disease data before we continue our research.
 
 ```{r results='markup'}
 table( heartdata2$y )
 ```
 
-We can find that the dataset is very unbalanced. Only 8.6% of the dataset has the value of 1 for y (HeartDisease). Considering that the dataset is large, I use undersampling methods to balance the dataset. After the balancing work, the value zero and value one of y are the same. And there is a reference for different balancing methods:  https://www.analyticsvidhya.com/blog/2016/03/practical-guide-deal-imbalanced-classification-problems/
+We can find that the dataset is very unbalanced. Only 8.6% of the dataset has the value of 1 for y (HeartDisease). Considering that the dataset is large, we use undersampling methods to balance the dataset. After the balancing work, the value zero and value one of y variable are the same. We have used the following reference for different balancing methods:  https://www.analyticsvidhya.com/blog/2016/03/practical-guide-deal-imbalanced-classification-problems/
 
 ```{r message=FALSE, warning=FALSE}
 loadPkg("ROSE")
@@ -542,7 +543,7 @@ str(data_balanced_under)
 
 ## logistic regression model
 
-I split the dataset into two parts to train and evaluate the model later. 80% of the dataset will be used to train the model, and the rest 20% will be used to test the model's accuracy. I will use *createDataPartition* in the *caret* library to split the dataset.
+We split the dataset into two parts to train and evaluate the model later. 80% of the dataset will be used to train the model, and the rest (20%) will be used to test the model's accuracy. I will use *createDataPartition* in the *caret* library to split the dataset.
 ```{r }
 loadPkg("caret")
 set.seed(4321)
@@ -552,14 +553,14 @@ data_test  <- data_balanced_under[ test, ]
 unloadPkg("caret") 
 ```
 
-After I split the data, the training dataset is used to build the model. First, I use all variables as independent variables and make a model as below.
+After having the data split, the training dataset is used to build the model. First, we use all the variables as independent variables and make a model as below.
 ```{r results='markup'}
 model_glm <- glm( y ~ ., data = data_train, family = binomial(logit) )
 summary_glm <- summary(model_glm)
 summary_glm
 ```
 
-We can find from the model that the p-values of Race and PhysicalActivity are more significant than 0.05, which means these two variables are insignificant. So just drop these two variables and make the second logistic regression model again.
+We can find from the model that the p-values of Race and PhysicalActivity are more significant than 0.05, which means these two variables are insignificant. So we drop these two variables and make the second logistic regression model again.
 
 ```{r message=FALSE, warning=FALSE}
 model2_glm <- glm( y ~ . - Race - PhysicalActivity, data = data_train, family = binomial(logit) )
@@ -568,9 +569,9 @@ summary2_glm <- summary(model2_glm)
 ```
 
 
-We will quickly check two things for this model. The first is the p-values. P-values below .05 indicate significance, which means the coefficient or so-called parameters that our model estimates are reliable. And second, the pseudo R square. This value ranging from 0 to 1, indicates how much variance our model explains.
+We will quickly check two things for this model. First, the p-values. Since a P-value below .05 indicates significance, which means the coefficient or so-called parameters that our model estimates are reliable. And second, the pseudo R squared. This value ranging from 0 to 1 indicates how much variance our model explains.
 
-We can find that all the p-values of the model indicate significance, meaning that our model is a legitimate one. An R square of 0.29 tells that 29 percent of the variance is explained.
+We can find that all the p-values of the model indicate significance, meaning that our model is a legitimate one. An R squared of 0.29 tells that 29 percent of the variance is explained.
 
 ```{r}
 #list( summary2_glm$coefficient, 
@@ -589,31 +590,29 @@ vif_md2 = faraway::vif(model2_glm)
 vif_md2
 ```
 
-We can find that some vif values are larger than 10, which means these variables are highly correlated and not acceptable. So I tried to drop one variable at a time. In the meantime, look at the p-value to ensure that the variables are significant. In the end, I got the model below:
+We can find that some vif values are larger than 10, which means these variables are highly correlated and not acceptable. So we tried to drop one variable at a time. In the meantime, we checked at the p-value to ensure that the variables are significant. In the end, we got the model below:
 
 ```{r results='markup'}
 model3_glm <- glm( y ~ . - Race - PhysicalActivity - Age - Asthma - PhysicalHealth, data = data_train, family = binomial(logit) )
 summary3_glm <- summary(model3_glm)
 summary3_glm
 ```
-
+And also checked the vif. We can find that all the vif values are all below 10.
 ```{r results='markup'}
 vif_md3 = faraway::vif(model3_glm)
 vif_md3
 ```
 
-And also check the vif. We can find that all the vif values are all below 10.
-
 
 ## Feature selection
-In this part, I want to use feature selection to find out the most suitable variables from our current model. Unfortunately, the training dataset has more than 40,000 rows, which is significant and takes much time to run. So I changed the test dataset to make the feature selection. The test dataset has the same data structure but fewer rows.
+In this part, we want to use feature selection to find out the most suitable variables from our current model. Unfortunately, the training dataset has more than 40,000 rows, which is significant and takes much time to run. So we changed the test dataset to make the feature selection. The test dataset has the same data structure but fewer rows.
 
 ```{r}
 data_feature_selection = subset(data_test, select = -c(Race, PhysicalActivity, PhysicalHealth, Age, Asthma))
 # str(data_feature_selection)
 ```
 
-Although lacking intuitive visual presentation of results, *bestglm::bestglm()* can handle logistic regression. So I use it to do the feature selection.
+Although lacking intuitive visual presentation of results, *bestglm::bestglm()* can handle logistic regression. Thus, we used it to do the feature selection.
 
 ```{r results='markup'}
 loadPkg("bestglm")
@@ -627,12 +626,12 @@ unloadPkg("bestglm")
 unloadPkg("leaps") 
 ```
 
-The feature selection shows that the best model has all these 13 variables, and its CIA (Akaike Information Criterion) is 12062, which is the lowest among these models. It's the model which we built before.
+The feature selection shows that the best model has all these 13 variables, and its CIA (Akaike Information Criterion) is 12062, which is the lowest among these models. 
 
 
 ## Model Evaluation
 
-In this part, I will use AUC and confusion matrix to evaluate the model.
+In this part, we will use AUC and confusion matrix to evaluate the model.
 
 ### ROC and AUC
 
@@ -647,12 +646,12 @@ plot(h)
 # unloadPkg("pROC")
 ```
 
-The AUC of the model is 0.795, which is a little bit lower than 0.8. Because our model looks suitable and we have all the needed features, I suppose that the data causes the lower AUC value. 
+The AUC of the model is 0.795, which is a little bit lower than 0.8. Because our model looks suitable and we have all the needed features, we assume that the data causes the lower AUC value. 
 
 
 ### Confusion matrix 
 
-We can have a look of the Confusion matrix.
+We can then have a look at the Confusion matrix.
 
 ```{r confusionMatrix, results='markup', message=FALSE, warning=FALSE}
 # install.packages("regclass")
@@ -664,7 +663,7 @@ unloadPkg("regclass")
 
 We can find from the confusion matrix that Precision is 14941/(5252+14941) = 0.74, which means the valid of the result is 74%. And the recall is 14941/(6957+14941) = 0.68, which means how complete the results are 68%.
 
-In our model, actually, I think the recall is more important, because FN means heart disease patients who are missed by our model, which can cause a harmful result.
+In our model, actually, we consider the recall is more important, because FN means heart disease patients who are missed by our model, which can cause a harmful result.
 
 
 ```{r results='markup', message=FALSE, warning=FALSE}
@@ -682,7 +681,7 @@ The Precision value and recall value of the test dataset is similiar to the trai
 
 ## Interpretation and Reporting
 
-We’ll return to our logistic regression model for a minute, and look at the estimated parameters (coefficients). Since the model’s parameter the recorded in logit format, I transformed it into odds ratio so that it’ll be easier to interpret. After transforming, I sorted the variables by the coefficient values.
+We’ll return to our logistic regression model for a minute, and look at the estimated parameters (coefficients). Since the model’s parameter the recorded in logit format, we transformed it into odds ratio so that it’ll be easier to interpret. After transforming, we sorted the variables by the coefficient values.
 
 ```{r results='markup'}
 loadPkg("broom")
@@ -942,6 +941,18 @@ rpart.rules(tree1)
 
 
 # Conclusion
+According to the CDC, heart disease is the leading cause of death for men, women, and people of most racial and ethnic groups in the United States (CDC, 2022). After performing the EDA, distributions, tests, regression models, and decision tree we concluded that smoking, strokes, asthma, difficulty walking, kidney disease, diabetes, and skin cancer affect instances of heart disease. 
+In addition to this analysis found in the database, we wanted to explore the response that these instances have on mental health and physical health. For this analysis, we arrived at the following conclusions. First,  the cutoff value of 0.15 is suitable for our logistic regression model, and through this model we found that general health condition, gender, other diseases and smoking habit variables  largely influence the possibility of heart disease. Second, from the classification tree, not practicing any physical activity impacts the perception of people feeling that their mental health was not good (they were not feeling good for 15 or more days in the past month. Finally, From the classification tree, the probability of smoking for people 30 or older, even if they have a heart disease or not, is more than 50%.
+Surprisingly drinking alcohol does not have a great impact on any of the target variables we were looking at: heart disease, mental and physical health, however, smoking has an impact on all three of these aspects. Similarly, BMI as a single measure, did not have any effect on any of the target variables. Studies have shown that BMI would not be expected to identify cardiovascular health or illness overall (Harvard, 2022), and these same findings explain that body composition, including percent body fat or amount of muscle mass, can vary by race and ethnic group and thus wont impact on predicting current healt status. 
 
 
 # References
+Centers for Disease Control and Prevention. (2022). Heart Disease Facts. https://www.cdc.gov/heartdisease/facts.htm
+
+Shmerling, R. (2020). How useful is the body mass index (BMI). Harvard Health Publishing. https://www.health.harvard.edu/blog/how-useful-is-the-body-mass-index-bmi-201603309339#:~:text=BMI%2C%20as%20a%20single%20measure,the%20only%20measure%20of%20health!
+
+Walto, A. (2017). The 5 Key Habits For Long-Term Health, According To Science. Forbes. https://www.forbes.com/sites/alicegwalton/2017/07/27/the-5-habits-that-really-define-longterm-health-according-to-science/?sh=6833625f4286
+
+
+
+
