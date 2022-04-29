@@ -949,7 +949,7 @@ Surprisingly drinking alcohol does not have a great impact on any of the target 
 # References
 Centers for Disease Control and Prevention. (2022). Heart Disease Facts. https://www.cdc.gov/heartdisease/facts.htm
 
-Heart Disease Dataset. (2020). Kaggle. https://www.kaggle.com/datasets/johnsmith88/heart-disease-dataset
+Kaggle. Heart Disease Dataset. (2020). https://www.kaggle.com/datasets/johnsmith88/heart-disease-dataset
 
 Shmerling, R. (2020). How useful is the body mass index (BMI). Harvard Health Publishing. https://www.health.harvard.edu/blog/how-useful-is-the-body-mass-index-bmi-201603309339#:~:text=BMI%2C%20as%20a%20single%20measure,the%20only%20measure%20of%20health!
 
