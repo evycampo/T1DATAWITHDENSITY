@@ -1,0 +1,960 @@
+---
+title: "Group 1 Final"
+author: "Evelyn Campo, Xiao Qi, Nusrat Prithee, Roman Kosarzycki"
+date: "April 27, 2022"
+output:  
+    rmdformats::readthedown:
+      toc_float: true
+      number_sections: true
+      includes:
+        before_body: header.html
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+options(scipen = 999, digits = 3, big.mark=",", warn = -1)
+```
+
+```{r basicfunct, include=FALSE}
+loadPkg = function(x) { if (!require(x,character.only=T, quietly =T)) { install.packages(x,dep=T,repos="http://cran.us.r-project.org"); if(!require(x,character.only=T)) stop("Package not found") } }
+```
+
+```{r init, include=FALSE}
+library(ezids)
+library(ggplot2)
+library(dplyr)
+loadPkg("tidyr")
+```
+
+```{r}
+# My functions
+
+GeomSplitViolin <- ggproto("GeomSplitViolin", GeomViolin, draw_group = function(self, data, ..., draw_quantiles = NULL){
+  data <- transform(data, xminv = x - violinwidth * (x - xmin), xmaxv = x + violinwidth * (xmax - x))
+  grp <- data[1,'group']
+  newdata <- plyr::arrange(transform(data, x = if(grp%%2==1) xminv else xmaxv), if(grp%%2==1) y else -y)
+  newdata <- rbind(newdata[1, ], newdata, newdata[nrow(newdata), ], newdata[1, ])
+  newdata[c(1,nrow(newdata)-1,nrow(newdata)), 'x'] <- round(newdata[1, 'x']) 
+  if (length(draw_quantiles) > 0 & !scales::zero_range(range(data$y))) {
+    stopifnot(all(draw_quantiles >= 0), all(draw_quantiles <= 
+                                              1))
+    quantiles <- create_quantile_segment_frame(data, draw_quantiles)
+    aesthetics <- data[rep(1, nrow(quantiles)), setdiff(names(data), c("x", "y")), drop = FALSE]
+    aesthetics$alpha <- rep(1, nrow(quantiles))
+    both <- cbind(quantiles, aesthetics)
+    quantile_grob <- GeomPath$draw_panel(both, ...)
+    ggplot2:::ggname("geom_split_violin", grobTree(GeomPolygon$draw_panel(newdata, ...), quantile_grob))
+  }
+  else {
+    ggplot2:::ggname("geom_split_violin", GeomPolygon$draw_panel(newdata, ...))
+  }
+})
+
+geom_split_violin <- function (mapping = NULL, data = NULL, stat = "ydensity", position = "identity", ..., draw_quantiles = NULL, trim = TRUE, scale = "area", na.rm = FALSE, show.legend = NA, inherit.aes = TRUE) {
+  layer(data = data, mapping = mapping, stat = stat, geom = GeomSplitViolin, position = position, show.legend = show.legend, inherit.aes = inherit.aes, params = list(trim = trim, scale = scale, draw_quantiles = draw_quantiles, na.rm = na.rm, ...))
+}
+
+getmode <- function(v) {
+   uniqv <- unique(v)
+   uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+```
+
+# Introduction
+Heart disease is one of the most common diseases and a leading cause of death in the United States. This dataset takes data from the CDC for the year 2020 for people with and without heart disease. It includes health-related data including BMI, whether someone is a smoker, the amount of physical activity, age, race, and other variables. Our hope is that by studying how different health variables relate to instances of heart disease, we can determine if there are significant factors that can predict heart disease or are correlated with heart disease. In addition to this, the dataset includes a measure of mental health. We were interested in what factors can affect mental health. For instance, drinking, smoking, and physical activity were predicted to have some impact on overall mental health. Lastly, we want to look at the relation between BMI and physical activity. There have been some recent studies that BMI does not have any correlation to physical health, so we’d like to use this dataset to explore that relation.
+
+## Background
+Healthy habits are defined as various terms that have been found in this database, such as: Eat a plant-based diet, average of sleep, mental health, physical activity and so forth. Furthermore, mental health tends to be related to physical health and this holistic relationship apparently has repercussions in diseases as serious as heart disease. This database shows an important relationship between the variables to know how are the decisions of the people interviewed and to estimate which habits lead to a degraded mental health, a physical health at risk, and aspects that even lead to heart disease. 
+
+
+## Description of the Dataset
+
+This data comes from a 2020 survey from the CDC on health status, used to study overall health and potential contributors to heart disease. The original dataset had 279 variables and over 400,000 rows, but the version which was uploaded to Kaggle contains 18 variables which could potentially influence heart disease and just over 320,000 complete rows, so there are no NA's and all 18 of the variables were taken into account in some way. The 18 variables consist of the following: HeartDisease, BMI, Smoking, AlcoholDrinking, Stroke, PhysicalHealth, MentalHealth, DiffWalking, Sex, AgeCategory, Race, Diabetic, PhysicalActivity, GenHealth, SleepTime, Asthma, KidneyDisease, SkinCancer. Most of these are straightforward variables that correspond with their name, but there are a few which require further explanation.
+
+The people interviewed for this survey would answer "Yes" for Smoking if they have smoked at least 100 cigarettes in their entire lifetime and "Yes" to AlcoholDrinking if they are considered heavy drinkers (more than 14 drinks per week for men and 7 for women). PhysicalHealth and MentalHealth are numerical variables which give the number days in the past 30 days during which their physical or mental health, respectively, could be considered not good. That means that lower values correspond to less days of poor health. Recipients answered "Yes" to DiffWalking if they have any difficulty walking or climbing stairs. Diabetic is a four-level factor variable which records if they have ever had diabetes with the following responses: "No", "Borderline", "Yes (during pregnancy)", or "Yes". PhysicalActivity records whether the recipients reported any physical activity in the past 30 days outside of their regular job. The rest of the variables should be relatively self-explanatory given their names. 
+
+# Understanding the Data
+
+## Dataset Summary
+
+Importing the dataset and original data structure:
+
+```{r}
+heartdata <- data.frame(read.csv("heart_2020_cleaned.csv"))
+str(heartdata)
+```
+
+## Cleaning the Dataset
+
+*All but five of the variables were set to factors. Most factor variable had 2 levels (yes or no questions), but some had up to six levels.
+
+*In the variable Race, "American Indian/Alaskan Native" was redefined to "Native" in order to conserve space on plots and tables, but it should be noted that these two groups make up that level
+
+*In the variable Diabetic, "No, borderline diabetes" was redefined to "Borderline" in order to conserve space. There is no information lost in doing this.
+
+*An order to the factor variables Race, Diabetic, and GenHealth was established to keep the orders uniform across plots and tables. The order for Race is based on relative frequency (with "Other" being at the end) and the other two varriables were put in a logical order.
+
+*The variable AgeCategory was replaced with Age so that it could be used as a numerical variable. A random value was chosen in the range given by AgeCategory, that value was set to Age, and unnecessary variables were deleted.
+
+```{r}
+heartdata$HeartDisease <- as.factor(heartdata$HeartDisease)
+heartdata$Smoking <- as.factor(heartdata$Smoking)
+heartdata$AlcoholDrinking <- as.factor(heartdata$AlcoholDrinking)
+heartdata$Stroke <- as.factor(heartdata$Stroke)
+heartdata$DiffWalking <- as.factor(heartdata$DiffWalking)
+heartdata$Sex <- as.factor(heartdata$Sex)
+heartdata$Race <- gsub("American Indian/Alaskan Native","Native",heartdata$Race)
+heartdata$Race <- factor(heartdata$Race,levels=c("White","Hispanic","Black","Asian","Native","Other"))
+heartdata$Diabetic <- gsub("No, borderline diabetes","Borderline",heartdata$Diabetic)
+heartdata$Diabetic <- factor(heartdata$Diabetic,levels=c("No","Borderline","Yes (during pregnancy)","Yes"))
+heartdata$PhysicalActivity <- as.factor(heartdata$PhysicalActivity)
+heartdata$GenHealth <- factor(heartdata$GenHealth,levels=c("Poor","Fair","Good","Very good","Excellent"))
+heartdata$Asthma <- as.factor(heartdata$Asthma)
+heartdata$KidneyDisease <- as.factor(heartdata$KidneyDisease)
+heartdata$SkinCancer <- as.factor(heartdata$SkinCancer)
+
+heartdata$AgeCategory <- gsub(" or older","-84",as.character(heartdata$AgeCategory))
+heartdata$HiAge <- as.numeric(substr(heartdata$AgeCategory,4,5))
+heartdata$rand <- sample(0:4,size=nrow(heartdata),replace=T)
+heartdata$Age <- with(heartdata,HiAge-rand)
+
+heartdata <- subset(heartdata,select=-c(AgeCategory,HiAge,rand))
+
+posdis <- subset(heartdata,HeartDisease=="Yes")
+negdis <- subset(heartdata,HeartDisease=="No")
+
+str(heartdata)
+```
+
+# Exploratory Data Analysis
+
+## Understanding the Data
+
+```{r}
+# Pie graphs
+
+hear<-table(heartdata$HeartDisease)
+pie(hear,col = rainbow(length(hear)),main="Heart Disease?")
+
+smok<-table(heartdata$Smoking)
+pie(smok,col = rainbow(length(smok)),main="Smoker?")
+
+drin<-table(heartdata$AlcoholDrinking)
+pie(drin,col = rainbow(length(drin)),main="Heavy Drinker?")
+
+race<-table(heartdata$Race)
+pie(race,col = rainbow(length(race)),main="Race?")
+
+sexx<-table(heartdata$Sex)
+pie(sexx,col = rainbow(length(sexx)),main="Sex?")
+```
+
+These pie charts give the relative frequency of a few key factor variables. The show that a majority of people do not have heart disease, have not smoked, are not heavy drinkers, are white, and are female.
+
+```{r}
+# Histograms of numerical variables
+
+ggplot(data=heartdata, aes(x=BMI))+geom_histogram(bins=50)+xlim(0,75)+ggtitle("Distribution of BMI")+geom_vline(xintercept = mean(heartdata$BMI,na.rm = TRUE), color = "red", size=1.5)+geom_vline(xintercept = median(heartdata$BMI,na.rm = TRUE), color = "blue", size=1.5)+geom_vline(xintercept = getmode(heartdata$BMI), color = "orange", size=1.5)
+
+ggplot(data=heartdata, aes(x=PhysicalHealth))+geom_histogram(bins=30)+ggtitle("Distribution of Days of Poor Physical Health")
+ggplot(data=heartdata, aes(x=MentalHealth))+geom_histogram(bins=30)+ggtitle("Distribution of Days of Poor Mental Health")
+
+ggplot(data=heartdata, aes(x=SleepTime))+geom_histogram(bins=12)+xlim(2,13)+ggtitle("Distribution of Sleep Time")+geom_vline(xintercept = mean(heartdata$SleepTime,na.rm = TRUE), color = "red", size=1.5)+geom_vline(xintercept = median(heartdata$SleepTime,na.rm = TRUE), color = "blue", size=1.5)+geom_vline(xintercept = getmode(heartdata$SleepTime), color = "orange", size=1.5)
+
+ggplot(data=heartdata, aes(x=Age))+geom_histogram(bins=65)+ggtitle("Distribution of Ages")+geom_vline(xintercept = mean(heartdata$Age,na.rm = TRUE), color = "red", size=1.5)+geom_vline(xintercept = median(heartdata$Age,na.rm = TRUE), color = "blue", size=1.5)+geom_vline(xintercept = getmode(heartdata$Age), color = "orange", size=1.5)
+```
+
+These histograms give a brief look at the numerical variables. BMI has an average value of 28.3 with a right skew. A majority of people reported 0 days of poor physical and mental health over the past 30 days. The average for sleep time and age is 7.1 hours and 54.6 years, respectively. 
+
+## Smart Question: What variables affect instances of heart disease?
+
+```{r}
+# Comparison of factors
+
+hea<-table(heartdata$HeartDisease)
+#hea
+#No heart disease
+#hea[1]/(hea[1]+hea[2])
+#Heart disease
+#hea[2]/(hea[1]+hea[2])
+xkabledply(hea, title = paste("Instances of Heart Disease:" ) )
+
+smo<-table(heartdata$HeartDisease,heartdata$Smoking)
+#smo
+#No smoking, no heart disease
+#smo[1]
+#smo[1]/(smo[1]+smo[2])
+#No smoking, heart disease
+#smo[2]
+#smo[2]/(smo[1]+smo[2])
+#Smoking, no heart disease
+#smo[3]
+#smo[3]/(smo[3]+smo[4])
+#Smoking, heart disease
+#smo[4]
+#smo[4]/(smo[3]+smo[4])
+xkabledply(smo, title = paste("Heart Disease vs. Smoking:" ) )
+
+dri<-table(heartdata$HeartDisease,heartdata$AlcoholDrinking)
+#dri
+#No drinking, no heart disease
+#dri[1]
+#dri[1]/(dri[1]+dri[2])
+#No drinking, heart disease
+#dri[2]
+#dri[2]/(dri[1]+dri[2])
+#Drinking, no heart disease
+#dri[3]
+#dri[3]/(dri[3]+dri[4])
+#Drinking, heart disease
+#dri[4]
+#dri[4]/(dri[3]+dri[4])
+xkabledply(dri, title = paste("Heart Disease vs. Drinking:" ) )
+
+dia<-table(heartdata$HeartDisease,heartdata$Diabetic)
+#dia
+xkabledply(dia, title = paste("Heart Disease vs. Diabetes:" ) )
+
+stro<-table(heartdata$HeartDisease,heartdata$Stroke)
+#stro
+xkabledply(stro, title = paste("Heart Disease vs. Stroke:" ) )
+
+wal<-table(heartdata$HeartDisease,heartdata$DiffWalking)
+#wal
+xkabledply(wal, title = paste("Heart Disease vs. Difficulty Walking:" ) )
+
+phy<-table(heartdata$HeartDisease,heartdata$PhysicalActivity)
+#phy
+xkabledply(phy, title = paste("Heart Disease vs. Physical Activity:" ) )
+
+ast<-table(heartdata$HeartDisease,heartdata$Asthma)
+#ast
+xkabledply(ast, title = paste("Heart Disease vs. Asthma:" ) )
+
+kid<-table(heartdata$HeartDisease,heartdata$KidneyDisease)
+#kid
+xkabledply(kid, title = paste("Heart Disease vs. Kidney Disease:" ) )
+
+ski<-table(heartdata$HeartDisease,heartdata$SkinCancer)
+#ski
+xkabledply(ski, title = paste("Heart Disease vs. Skin Cancer:" ) )
+```
+
+These are various tables which compare factor variables with instances of heart disease. To summarize briefly, there were more instances of heart disease with people who had smoked, were heavy drinkers, had a stroke, had difficulty walking, were not physically active, had asthma, had kidney disease, had diabetes, and had skin cancer. 
+
+```{r}
+# Heart disease and BMI
+
+ggplot(heartdata, aes(x=HeartDisease, y=BMI, fill=HeartDisease)) + geom_boxplot(outlier.shape = NA)+ggtitle("Heart Disease by BMI")+ylim(15,45)
+```
+
+This boxplot looks at the distribution of BMI values for people with and without heart disease. The median BMI was 27.3 for people without heart disease and 28.3 for people with heart disease.
+
+```{r}
+# Heart disease and Age
+
+ggplot(heartdata, aes(x=HeartDisease, y=Age, fill=HeartDisease)) + geom_boxplot(outlier.shape = NA)+ggtitle("Heart Disease by Age")+coord_flip()
+
+agelist <- sort(unique(heartdata$Age))
+Age <- c()
+PositiveMale <- c()
+PositiveFemale <- c()
+TotalMale <- c()
+TotalFemale <- c()
+Male <- c()
+Female <- c()
+Sex <- c()
+Positive <- c()
+Total <- c()
+
+for (x in 1:length(agelist)){
+  Age <- c(Age,agelist[x])
+  PositiveMale <- c(PositiveMale, nrow(subset(heartdata,Age==agelist[x] & HeartDisease=="Yes" & Sex=="Male")))
+  PositiveFemale <- c(PositiveFemale, nrow(subset(heartdata,Age==agelist[x] & HeartDisease=="Yes" & Sex=="Female")))
+  TotalMale <- c(TotalMale, nrow(subset(heartdata,Age==agelist[x] & Sex=="Male")))
+  TotalFemale <- c(TotalFemale, nrow(subset(heartdata,Age==agelist[x] & Sex=="Female")))
+  Male <- c(Male,"Male")
+  Female <- c(Female, "Female")
+}
+
+Sex <- c(Male,Female)
+Positive <- c(PositiveMale,PositiveFemale)
+Total <- c(TotalMale,TotalFemale)
+agedata <- data.frame(Age, Positive, Total, Sex)
+agedata['Percentage'] <- 100*Positive/Total
+agedata$Sex <- factor(agedata$Sex,levels=c("Male","Female"))
+
+ggplot(agedata, aes(x=Age,y=Percentage,fill=Sex)) + geom_area(position="identity") +scale_fill_manual(values=c("blue","magenta")) + ggtitle("Heart Disease by Age and Sex")
+```
+
+These two plots look at instances of heart disease compared to both age and sex. The median age of people with heart disease was 70 years versus 55 years for people without. The area plot demonstrates an increase in the percentage of people with heart disease as their age increases and also shows that men are more likely to have heart disease than women.
+
+```{r}
+# Heart disease versus gen health
+
+ggplot(posdis, aes(x=GenHealth,fill=GenHealth)) + geom_bar()+ggtitle("General Health for People With Heart Disease")
+
+ggplot(negdis, aes(x=GenHealth,fill=GenHealth)) + geom_bar()+ggtitle("General Health for People Without Heart Disease")
+
+ggplot(heartdata,aes(GenHealth,Age,fill=HeartDisease))+geom_split_violin()+ggtitle("Age and General Health for People With and Without Heart Disease")
+```
+
+These two bar graphs and split violin plot look at general health for people with and without heart disease. The most common response was "Good" health for people with heart disease and "Very good" for people without heart disease. The violin plot confirms the relationship between heart disease and age while showing the distribution of people in each health category versus age in each case.
+
+```{r}
+# Heart disease vs. race and age
+
+ggplot(heartdata,aes(Race,Age,fill=HeartDisease))+geom_split_violin()+ggtitle("Age and Race for People With and Without Heart Disease")
+
+rac <- table(heartdata$HeartDisease,heartdata$Race)
+Race <- c("White","Hispanic","Black","Asian","Native","Other")
+Percentage <- c(100*rac[2]/(rac[1]+rac[2]),100*rac[4]/(rac[3]+rac[4]),100*rac[6]/(rac[5]+rac[6]),100*rac[8]/(rac[7]+rac[8]),100*rac[10]/(rac[11]+rac[10]),100*rac[12]/(rac[11]+rac[12]))
+racedata <- data.frame(Race,Percentage)
+racedata$Race <- factor(racedata$Race,levels=c("White","Hispanic","Black","Asian","Native","Other"))
+
+ggplot(racedata,aes(x=Race,y=Percentage,fill=Race))+geom_bar(stat="identity")+ggtitle("Percentage of People With Heart Disease")
+```
+
+This split violin plot and accompanying bar graph look at race and age versus heart disease. The violin plot shows the unexpected result that non-white people report having heart disease at younger ages when compared to white people. The bar graph shows that a higher percentage of white people get heart disease (9.2%) and a lower percentage of Asian people (3.3%) have heart disease, with the other races falling somewhere between those two values.
+
+## Smart Question: What variables affect mental health?
+
+```{r}
+# Mental health
+
+heartdata2 <- heartdata
+heartdata2 <- heartdata2[heartdata2$MentalHealth != 0,]
+heartdata2$SleepTime <-ifelse(heartdata2$SleepTime<7,"Too little",ifelse(heartdata2$SleepTime>9,"Too much","Recommended"))
+heartdata2$Sleep <- factor(heartdata2$SleepTime,levels=c("Too little","Recommended","Too much"))
+
+ggplot(heartdata2, aes(x=Smoking, y=MentalHealth, fill=Smoking)) + geom_boxplot(outlier.shape = NA)+ggtitle("Mental Health for Smokers and Non-Smokers")
+
+ggplot(heartdata2, aes(x=AlcoholDrinking, y=MentalHealth, fill=AlcoholDrinking)) + geom_boxplot(outlier.shape = NA)+ggtitle("Mental Health for Drinkers and Non-Drinkers")
+
+ggplot(heartdata2, aes(x=PhysicalActivity, y=MentalHealth, fill=PhysicalActivity)) + geom_boxplot(outlier.shape = NA)+ggtitle("Mental Health versus Physical Activity")
+
+ggplot(heartdata2, aes(x=Sleep, y=MentalHealth, fill=Sleep)) + geom_boxplot(outlier.shape = NA)+ggtitle("Mental Health versus Sleep")
+```
+
+These four boxplots look at what variables affect mental health. It should be noted that since over 60% of total recipients reported 0 days of poor mental health, those instances were omitted, so these plots look at people who have reported at least 1 day of poor mental health. They show that people have less poor mental health days when they don't smoke, aren't heavy drinkers, are physically active, and get the recommended amount of sleep (7 to 9 hours per night).
+
+## Smart Question: Does BMI have any effect on physical health?
+
+```{r}
+# BMI and health
+
+ggplot(heartdata, aes(x=GenHealth, y=BMI, fill=GenHealth)) + geom_boxplot(outlier.shape = NA)+ggtitle("General Health by BMI")+ylim(15,45)
+```
+
+This boxplot compares general health categories to recorded BMI. Those who reported "Excellent" health had the lowest median BMI (25.4) and those who reported "Fair" health had the highest median BMI (29.4).
+
+
+```{r include=FALSE}
+
+heartdata <- data.frame(read.csv("heart_2020_cleaned.csv"))
+
+n=10
+#heartdata <- heartdata[seq(1,nrow(heartdata),n),]
+
+heartdata$HeartDisease <- as.factor(heartdata$HeartDisease)
+heartdata$Smoking <- as.factor(heartdata$Smoking)
+heartdata$AlcoholDrinking <- as.factor(heartdata$AlcoholDrinking)
+heartdata$Stroke <- as.factor(heartdata$Stroke)
+heartdata$DiffWalking <- as.factor(heartdata$DiffWalking)
+heartdata$Sex <- as.factor(heartdata$Sex)
+heartdata$Race <- as.factor(heartdata$Race)
+heartdata$Diabetic <- as.factor(heartdata$Diabetic)
+heartdata$PhysicalActivity <- as.factor(heartdata$PhysicalActivity)
+heartdata$GenHealth <- as.factor(heartdata$GenHealth)
+heartdata$Asthma <- as.factor(heartdata$Asthma)
+heartdata$KidneyDisease <- as.factor(heartdata$KidneyDisease)
+heartdata$SkinCancer <- as.factor(heartdata$SkinCancer)
+
+heartdata$AgeCategory <- gsub(" or older","-4",as.character(heartdata$AgeCategory))
+heartdata$LoAge <- as.numeric(substr(heartdata$AgeCategory,1,2))
+heartdata$rand <- sample(0:4,size=nrow(heartdata),replace=T)
+heartdata$Age <- with(heartdata,LoAge+rand)
+heartdata <- subset(heartdata,select=-c(AgeCategory,LoAge,rand))
+
+str(heartdata)
+
+```
+# Testing
+
+## Chi-Square Test
+
+The Chi-square test of independence is a statistical hypothesis test used to determine whether two variables are likely to be related or not. We conduct a couple of chi-square test to check if the variables are independent or not.
+
+### Is heart disease data related to gender?
+
+We want to check if the Heart Disease variable is related to the gender variable. Thus, we conduct a chi-square test to check whether Heart Disease and Sex are independent. 
+H0: Heart Disease and Sex are independent from each other. 
+H1: Heart Disease and Sex are not independent from each other.
+
+```{r, results="markup"}
+sextable= table(heartdata$HeartDisease,heartdata$Sex)
+
+ezids::xkabledply(sextable, title="Contingency table for Heart Disease  vs Gender ")
+chitest_sex = chisq.test(sextable)
+chitest_sex
+
+```
+A contingency table is created with the two variables to conduct the chi-square test. The contingency table shows how many women and men are suffering from heart disease and how many women and men are not suffering from heart disease. According to table, men are more likely to suffer from heart disease than women. The chi-square has found weather the variables on the data set are related to each other or not. From the p-value for the tests,  2.2e-16.P proves to be less than 0.05. Therefore, we reject the null hypothesis, meaning that heart disease  and gender are related to each other.
+
+### Does the data support that race very much affects heart disease?
+
+We want to check if the Heart Disease variable is related to the Race variable. We conduct another chi-square test to check whether Heart Disease and Race are independent. 
+H0: Heart Disease and race are independent from each other. 
+H1: Heart Disease and race are not independent from each other.
+
+```{r, results="markup"}
+racetable = xtabs(~ Race+HeartDisease, data =heartdata )
+racetable
+chitest_race = chisq.test(racetable)
+chitest_race
+```
+The table shows how many people are suffering from heart disease and otherwise according to the race. As stated by the table, white people are more likely to suffer from heart disease compare to other races.
+Additionally, the chi-square looked whether the variables are related or not, and with a p-value of 2.2e-16 we were able to reject null Hypothesis supporting evidence that race has effects on heart disease.
+
+### Does the data support that Heart Disease has an effect on Gen Health?
+
+The last chi-square test conducted is to check if the variable heart disease is independent to general health.
+H0: Heart Disease and Gen Health are independent from each other. 
+H1: Heart Disease and Gen Health are not independent from each other.
+```{r, results="markup"}
+gentable= table(heartdata$HeartDisease,heartdata$GenHealth)
+ezids::xkabledply(gentable, title="Contingency table for Heart Disease  vs Gen Health ")
+chitest_gen = chisq.test(gentable)
+chitest_gen
+```
+The contingency table shows the number of active heart disease patients are heaving general health condition in five categories. The Chi-square is intended to show if the variables are related or not, and with a p-value of 2.2e-16 we reject the null Hypothesis leading to evidence to support that Heart Disease has an effect on Gen Health variable. 
+
+## T-test
+
+### What is the average age people are suffering from heart disease?
+
+On our data set Heart Disease is a factor variable and Age is numeric variable. Therefore, to find the average age of people having heart disease we have chosen the T-test for this purpose. A t-test compares the mean of the sample data to a known value. By conducting the t-test, the average  value (mean value) of people's age having heart disease was found. Subsequently, values from t-test are analyzed to find the  average age of people  suffering from heart diseases. 
+```{r, results="markup"}
+ heart_disease_on=subset(heartdata,HeartDisease=="Yes")
+ttest_age <- t.test(heart_disease_on$Age)
+ttest_age
+```
+After sub setting the dataset to split the values where HeartDisease factor variable is Yes, we  conducted the t-test to know the average age.The result shows that the value average of having heart disease is 68.
+
+## Test For Association
+
+The correlation test is used to evaluate the association between two or more variables.
+Pearson's  can range from −1 to 1, and an R-squared of −1 indicates a perfect negative linear relationship between variables, an R-squared of 0 indicates no linear relationship between variables, and an R-squared of 1 indicates a perfect positive linear relationship between variables.
+
+### What variables affect mental health physical health? In particular, does alcohol drinking, smoking
+
+To know the effect of smoking and drinking on mental and physical health Pearson's method of cor test is used.
+```{r results='markup'}
+menhealth_smoke<-cor.test(heartdata$MentalHealth,as.numeric(heartdata$Smoking), method="pearson")
+menhealth_smoke
+menhealth_drinking<-cor.test(heartdata$MentalHealth,as.numeric(heartdata$AlcoholDrinking), method="pearson")
+menhealth_drinking
+```  
+Smoking and drinking variables do not have enough strong correlation with mental health. Here, the Cor value of smoking is 0.08515729, drinking alcohol value is 0.05128197.Thus, smoking has a stronger correlation with mental health than drinking alcohol with the same.
+```{r results='markup'}
+phyhealth_smoke<-cor.test(heartdata$PhysicalHealth,as.numeric(heartdata$Smoking), method="pearson")
+phyhealth_smoke
+phyhealth_drinking<-cor.test(heartdata$PhysicalHealth,as.numeric(heartdata$AlcoholDrinking), method="pearson")
+phyhealth_drinking
+```
+Smoking and drinking variables do not have enough strong correlation with physical health. Here, the Cor value of smoking is 0.1153524, drinking alcohol value is -0.01725429. Thus, smoking has a stronger correlation with physical health than drinking alcohol, as this latter one is negatively correlated.
+
+# Model building
+## SMART Question
+
+*What variables affect instances of heart disease?*
+
+Our goal is to find out the people who are likely to have heart disease in the future, so we can take some actions like a more detailed physical examination before the conditions become worse.
+
+## Pre-processing amd balancing the data
+
+The first step is to perform some pre-processing work.
+
+First, because we will use *bestglm::bestglm()*, a feature selection method, to decide which variables are essential and which are not, we must clean the dataset with the target variable renamed y and all other unused variables removed from the dataset. Thus, we put the HeartDisease column at the end of the dataset and renamed it as y.
+
+Second, considering that there are few rows with the value "Yes (during pregnancy)" in the Diabetic variable, we combine the value "Yes (during pregnancy)" and "Yes" together in the Diabetic variable.
+
+The following codes are the two pre-processing steps in the model building part.
+
+```{r include=FALSE}
+heartdata2 <- data.frame(read.csv("heart_2020_cleaned.csv"))
+heartdata2$Smoking <- as.factor(heartdata2$Smoking)
+heartdata2$AlcoholDrinking <- as.factor(heartdata2$AlcoholDrinking)
+heartdata2$Stroke <- as.factor(heartdata2$Stroke)
+heartdata2$DiffWalking <- as.factor(heartdata2$DiffWalking)
+heartdata2$Sex <- as.factor(heartdata2$Sex)
+heartdata2$Race <- as.factor(heartdata2$Race)
+heartdata2$PhysicalActivity <- as.factor(heartdata2$PhysicalActivity)
+heartdata2[heartdata2$GenHealth == 'Poor', "GenHealth"] <- 0
+heartdata2[heartdata2$GenHealth == 'Fair', "GenHealth"] <- 1
+heartdata2[heartdata2$GenHealth == 'Good', "GenHealth"] <- 2
+heartdata2[heartdata2$GenHealth == 'Very good', "GenHealth"] <- 3
+heartdata2[heartdata2$GenHealth == 'Excellent', "GenHealth"] <- 4
+#heartdata2$GenHealth <- as.factor(heartdata2$GenHealth)
+heartdata2$GenHealth <- as.numeric(heartdata2$GenHealth)
+heartdata2$Asthma <- as.factor(heartdata2$Asthma)
+heartdata2$KidneyDisease <- as.factor(heartdata2$KidneyDisease)
+heartdata2$SkinCancer <- as.factor(heartdata2$SkinCancer)
+heartdata2$AgeCategory <- gsub(" or older","-4",as.character(heartdata2$AgeCategory))
+heartdata2$LoAge <- as.numeric(substr(heartdata2$AgeCategory,1,2))
+heartdata2$rand <- sample(0:4,size=nrow(heartdata2),replace=T)
+heartdata2$Age <- with(heartdata2,LoAge+rand)
+heartdata2 <- subset(heartdata2,select=-c(AgeCategory,LoAge,rand))
+```
+
+```{r}
+heartdata2[heartdata2$Diabetic == 'Yes (during pregnancy)', "Diabetic"] <- 'Yes'
+heartdata2$Diabetic <- as.factor(heartdata2$Diabetic)
+heartdata2$y <- as.factor(heartdata2$HeartDisease)
+heartdata2 = subset(heartdata2, select = -c(HeartDisease))
+
+# str(heartdata2)
+```
+
+After preprocessing, we need to balance the data. Let us look at the proportion of heart disease data before we continue our research.
+
+```{r results='markup'}
+table( heartdata2$y )
+```
+
+We can find that the dataset is very unbalanced. Only 8.6% of the dataset has the value of 1 for y (HeartDisease). Considering that the dataset is large, we use undersampling methods to balance the dataset. After the balancing work, the value zero and value one of y variable are the same. We have used the following reference for different balancing methods:  https://www.analyticsvidhya.com/blog/2016/03/practical-guide-deal-imbalanced-classification-problems/
+
+```{r message=FALSE, warning=FALSE}
+loadPkg("ROSE")
+data_balanced_under <- ovun.sample(y ~ ., data = heartdata2, method = "under", N = 27373*2, seed = 1)$data
+rm(heartdata2)
+unloadPkg("ROSE") 
+```
+
+We can find that the data is really balanced now.
+```{r results='markup'}
+table( data_balanced_under$y )
+```
+
+Before we begin the logistic regression model, let us look at the structure of the dataset now.
+```{r results='markup'}
+str(data_balanced_under)
+```
+
+## logistic regression model
+
+We split the dataset into two parts to train and evaluate the model later. 80% of the dataset will be used to train the model, and the rest (20%) will be used to test the model's accuracy. I will use *createDataPartition* in the *caret* library to split the dataset.
+```{r }
+loadPkg("caret")
+set.seed(4321)
+test <- createDataPartition( data_balanced_under$y, p = .2, list = FALSE )
+data_train <- data_balanced_under[ -test, ]
+data_test  <- data_balanced_under[ test, ]
+unloadPkg("caret") 
+```
+
+After having the data split, the training dataset is used to build the model. First, we use all the variables as independent variables and make a model as below.
+```{r results='markup'}
+model_glm <- glm( y ~ ., data = data_train, family = binomial(logit) )
+summary_glm <- summary(model_glm)
+summary_glm
+```
+
+We can find from the model that the p-values of Race and PhysicalActivity are more significant than 0.05, which means these two variables are insignificant. So we drop these two variables and make the second logistic regression model again.
+
+```{r message=FALSE, warning=FALSE}
+model2_glm <- glm( y ~ . - Race - PhysicalActivity, data = data_train, family = binomial(logit) )
+summary2_glm <- summary(model2_glm)
+#summary2_glm
+```
+
+
+We will quickly check two things for this model. First, the p-values. Since a P-value below .05 indicates significance, which means the coefficient or so-called parameters that our model estimates are reliable. And second, the pseudo R squared. This value ranging from 0 to 1 indicates how much variance our model explains.
+
+We can find that all the p-values of the model indicate significance, meaning that our model is a legitimate one. An R squared of 0.29 tells that 29 percent of the variance is explained.
+
+```{r}
+#list( summary2_glm$coefficient, 
+#      round( 1 - ( summary2_glm$deviance / summary2_glm$null.deviance ), 2 ) )
+# round( 1 - ( summary2_glm$deviance / summary2_glm$null.deviance ), 2 )
+```
+
+After we finish this, we can have a look at the Variance Inflation Factor (vif).
+
+* When 1 < vif < 5, it means the variables are mildly correlated. It's acceptable.
+* When 5 < vif < 10, it means moderately correlated, and it also can be acceptable.
+* When vif > 10, it's not acceptable.
+
+```{r results='markup'}
+vif_md2 = faraway::vif(model2_glm)
+vif_md2
+```
+
+We can find that some vif values are larger than 10, which means these variables are highly correlated and not acceptable. So we tried to drop one variable at a time. In the meantime, we checked at the p-value to ensure that the variables are significant. In the end, we got the model below:
+
+```{r results='markup'}
+model3_glm <- glm( y ~ . - Race - PhysicalActivity - Age - Asthma - PhysicalHealth, data = data_train, family = binomial(logit) )
+summary3_glm <- summary(model3_glm)
+summary3_glm
+```
+And also checked the vif. We can find that all the vif values are all below 10.
+```{r results='markup'}
+vif_md3 = faraway::vif(model3_glm)
+vif_md3
+```
+
+
+## Feature selection
+In this part, we want to use feature selection to find out the most suitable variables from our current model. Unfortunately, the training dataset has more than 40,000 rows, which is significant and takes much time to run. So we changed the test dataset to make the feature selection. The test dataset has the same data structure but fewer rows.
+
+```{r}
+data_feature_selection = subset(data_test, select = -c(Race, PhysicalActivity, PhysicalHealth, Age, Asthma))
+# str(data_feature_selection)
+```
+
+Although lacking intuitive visual presentation of results, *bestglm::bestglm()* can handle logistic regression. Thus, we used it to do the feature selection.
+
+```{r results='markup', message=FALSE, warning=FALSE}
+loadPkg("bestglm")
+res.bestglm <- bestglm(Xy = data_feature_selection, family = binomial,
+            IC = "AIC",                 # Information criteria for
+            method = "backward")
+summary(res.bestglm)
+res.bestglm$BestModels
+summary(res.bestglm$BestModels)
+unloadPkg("bestglm") 
+unloadPkg("leaps") 
+```
+
+The feature selection shows that the best model has all these 13 variables, and its CIA (Akaike Information Criterion) is 12062, which is the lowest among these models. 
+
+
+## Model Evaluation
+
+In this part, we will use AUC and confusion matrix to evaluate the model.
+
+### ROC and AUC
+
+Receiver-Operator-Characteristic (ROC) curve and Area-Under-Curve (AUC) measure the true positive rate (or sensitivity) against the false positive rate (or specificity). The area-under-curve is always between 0.5 and 1. Values higher than 0.8 are considered a good model fit.  
+```{r roc_auc, message=FALSE, warning=FALSE}
+loadPkg("pROC") # receiver operating characteristic curve, gives the diagnostic ability of a binary classifier system as its discrimination threshold is varied. The curve is on sensitivity/recall/true-positive-rate vs false_alarm/false-positive-rate/fall-out.
+prob=predict(model3_glm, type = "response" )
+data_train$prob=prob
+h <- roc(y~prob, data=data_train)
+# auc(h) # area-under-curve prefer 0.8 or higher.
+plot(h)
+# unloadPkg("pROC")
+```
+
+The AUC of the model is 0.795, which is a little bit lower than 0.8. Because our model looks suitable and we have all the needed features, we assume that the data causes the lower AUC value. 
+
+
+### Confusion matrix 
+
+We can then have a look at the Confusion matrix.
+
+```{r confusionMatrix, results='markup', message=FALSE, warning=FALSE}
+# install.packages("regclass")
+library("regclass")
+# confusion_matrix(admitLogit)
+xkabledply( confusion_matrix(model3_glm), title = "Confusion matrix from Logit Model" )
+unloadPkg("regclass")
+```
+
+We can find from the confusion matrix that Precision is 14941/(5252+14941) = 0.74, which means the valid of the result is 74%. And the recall is 14941/(6957+14941) = 0.68, which means how complete the results are 68%.
+
+In our model, actually, we consider the recall is more important, because FN means heart disease patients who are missed by our model, which can cause a harmful result.
+
+
+```{r results='markup', message=FALSE, warning=FALSE}
+loadPkg("InformationValue")
+predicted = predict(model3_glm, data_test, type = "response")
+
+confusionMatrix(data_test$y, predicted)
+unloadPkg("InformationValue")
+```
+
+Then we can use the test dataset to checkout whether the model is good to use. So I used the data_test to make a prediction and calculate the confusion matrix by the test dataset. The Precision is 3722/(1255+3722) = 0.75 and the recall is 3722/(1753+3722) = 0.68.
+
+The Precision value and recall value of the test dataset is similiar to the train dataset, which means our model is reliable to predict the heart disease.
+
+
+## Interpretation and Reporting
+
+We’ll return to our logistic regression model for a minute, and look at the estimated parameters (coefficients). Since the model’s parameter the recorded in logit format, we transformed it into odds ratio so that it’ll be easier to interpret. After transforming, we sorted the variables by the coefficient values.
+
+```{r results='markup'}
+loadPkg("broom")
+
+coefficient <- tidy(model3_glm)[ , c( "term", "estimate", "statistic" ) ]
+
+# transfrom the coefficient to be in probability format 
+coefficient$estimate <- exp( coefficient$estimate )
+coefficient[sort(abs(coefficient$estimate),decreasing=T,index.return=T)[[2]],]
+
+unloadPkg("broom")
+```
+
+We can find from the table that other diseases (stroke, kidney disease, diabetic, SkinCancer), general health conditions, sex, DiffWalking (serious difficulty walking or climbing stairs), and smoking habit all largely influence the possibility of heart disease. It's a little weird that drinking alcohol will reduce the possibility of heart disease. As we always think, drinking is not a good habit. Maybe the data also includes people who drink some little wine.
+
+
+```{r}
+
+heartdata <- data.frame(read.csv("heart_2020_cleaned.csv"))
+
+#heartdata <- heartdata[seq(1,nrow(heartdata),n),]
+
+heartdata$HeartDisease <- as.factor(heartdata$HeartDisease)
+heartdata$Smoking <- as.factor(heartdata$Smoking)
+heartdata$AlcoholDrinking <- as.factor(heartdata$AlcoholDrinking)
+heartdata$Stroke <- as.factor(heartdata$Stroke)
+heartdata$DiffWalking <- as.factor(heartdata$DiffWalking)
+heartdata$Sex <- as.factor(heartdata$Sex)
+heartdata$Race <- as.factor(heartdata$Race)
+heartdata$Diabetic <- as.factor(heartdata$Diabetic)
+heartdata$PhysicalActivity <- as.factor(heartdata$PhysicalActivity)
+heartdata$GenHealth <- as.factor(heartdata$GenHealth)
+heartdata$Asthma <- as.factor(heartdata$Asthma)
+heartdata$KidneyDisease <- as.factor(heartdata$KidneyDisease)
+heartdata$SkinCancer <- as.factor(heartdata$SkinCancer)
+
+heartdata$AgeCategory <- gsub(" or older","-4",as.character(heartdata$AgeCategory))
+heartdata$LoAge <- as.numeric(substr(heartdata$AgeCategory,1,2))
+heartdata$rand <- sample(0:4,size=nrow(heartdata),replace=T)
+heartdata$Age <- with(heartdata,LoAge+rand)
+heartdata <- subset(heartdata,select=-c(AgeCategory,LoAge,rand))
+
+# str(heartdata)
+
+```
+
+
+
+# Classification Trees
+## First Classification Tree
+
+```{r}
+#Creating new heartdata DF with different name
+library(dplyr)
+clean_heart<-heartdata
+
+```
+For the purposes of the decision tree, observations were assigned for the variable mental health with categorical values "Yes" and "No". Its initial values range between 1 and 30 as a response to how many days on the previous month people interviewed felt their mental health was not good. In this sense, a logic if else argument responds to the condition if people felt their mental health was no good for 15 or more days then assign value "Yes", otherwise assign value "No" (MentalHealth>=15, "No", "Yes").
+
+```{r}
+#Assigning ifelse logic to Mental Health. See if the person is not feeling ok in 15 days or more during the month
+HighMH = ifelse(clean_heart$MentalHealth>=15, "No", "Yes")
+clean_heart = data.frame(clean_heart, HighMH)
+```
+This procedure was pertinent for further process on creating the decision tree with the relevant variables. In this first decision tree the following variables were selected: HighMh, Smoking, Sex, AlcoholDrinking, and PhysicalActivity. 
+
+```{r}
+#Selecting only the meaningful columns for prediction
+clean_heart <- select(clean_heart, HighMH, Smoking, Sex, AlcoholDrinking, PhysicalActivity)
+clean_heart <- mutate(clean_heart, HighMH=factor(HighMH), Smoking=factor(Smoking), Sex=factor(Sex), PhysicalActivity=factor(PhysicalActivity))
+```
+
+After sub setting the data a training model was created to predict the class or value of the target variable, which in this case is Smoking, by learning simple decision rules inferred from this data training.
+
+```{r message=FALSE, warning=FALSE}
+library('rpart.plot')
+create_train_test <- function(data, size = 0.8, train = TRUE) {
+n_row = nrow(data)
+total_row = size * n_row
+train_sample = c(1: total_row)
+if (train == TRUE) {
+return (data[train_sample, ])
+  } else {
+return (data[-train_sample, ])
+  }
+}
+```
+
+
+```{r message=FALSE, warning=FALSE}
+#Splitting clean_heart into training and testing data
+library(caTools)
+set.seed(123)
+
+data_train <- create_train_test(clean_heart, 0.8, train = TRUE)
+data_test <- create_train_test(clean_heart, 0.8, train = FALSE)
+#dim(data_train)
+#dim(data_test)
+
+#sample = sample.split(clean_heart$MentalHealth, SplitRatio = .70)
+#train = subset(clean_heart, sample==TRUE)
+#test = subset(clean_heart, sample==FALSE)
+
+```
+With the training dataset created, a tree was built responding to smoking as the target value. The results show 13 different nodes for each variable. The actual tree starts with the root node labeled 1). observations and a default decision of No. There are 107000 observations with Yes as the decision, so these are lost if we make the decision No for all observations. The probability of No is reported as 0.58 and of Yes us 0.41. 
+The root node is split into two branches, nodes number 2 and 4. For node number 2, the split corresponds to those observations for which AlcoholDrinking is equal to No. This accounts for 238097 observations and whilst 96200 of them are Yes. The majority (with a proportion of 0.596) are No. 
+Going forward with interpreting the nodes, it is concluded that with a proportion of 60% people who drinks alcohol, and out of this 42% are male and practice physical activity, 41% percent reported more than 15 days in the prior month where their mental health seemed to be affected.
+
+```{r}
+#Training the Decision Tree Classifier
+tree <- rpart(Smoking ~., data=data_train, method="class", control = rpart.control(minsplit = 1, minbucket = 1, cp = 0.001))
+#print(tree)
+```
+
+```{r}
+#summary(tree)
+```
+
+```{r message=FALSE, warning=FALSE}
+library(rpart)				        # Popular decision tree algorithm
+library(rattle)					# Fancy tree plot
+library(rpart.plot)				# Enhanced tree plots
+library(RColorBrewer)				# Color selection for fancy tree plot
+library(party)					# Alternative decision tree algorithm
+library(partykit)				# Convert rpart object to BinaryTree
+library(caret)	
+```
+Graphically the tree looks like the following plot, and this visually represents, as another conclusion, that starting on node 5 representing 51% of people who do not workout at all throughout the month, there are 45% female from whom 42% felt their mental health was not good for 15+ days in the past 30 days.
+```{r}
+col <- c("#FD8D3C", "#FD8D3C", "#FD8D3C", "#BCBDDC",
+         "#FDD0A2", "#FD8D3C", "#BCBDDC")
+prp(tree, type=2, extra=104, nn=TRUE, ni=TRUE, fallen.leaves=TRUE, 
+    faclen=0, varlen=0, shadow.col="grey", branch.lty=3)
+
+#we can alsos change extra=104
+```
+The following plot is more visually appealing and resumes the conclusions described above. 
+```{r}
+library("RColorBrewer")
+fancyRpartPlot(tree, main="Classification Tree for Smoking", palettes="PuRd", type=2)
+
+```
+Additionally, from the tree fit function specific observations were selected to obtain the prediction and the rule used to make that prediction based on the target variable. The results are the following:
+
+```{r}
+#I created set of rules from the decision tree to see the probabilities per rule
+rpart.rules(tree)
+#asRules(tree)
+```
+
+
+## Second Classification Tree
+
+A second classification tree was built to understand the behavior of different variables interacting with the target variable smoking.The variables used to construct the model were: Age, Sleep Time, Race, Heart Disease, and Physical Activity.
+
+
+```{r}
+#Creating new heartdata DF with different name
+
+clean_heart1<-heartdata
+
+```
+
+```{r}
+clean_heart1$SleepTime=as.numeric(clean_heart1$SleepTime)
+clean_heart1$Age=as.numeric(clean_heart1$Age)
+
+```
+For this classification tree, the variable Age was turned into ‘ifelse logic’ to see the pattern for people of 30+ years old, and the variable name assigned was: Age30Plus.
+
+
+```{r}
+#Assigning ifelse logic to Mental Health. See if the person is not feeling ok in 15 days or more during the month
+AvSleep = ifelse(clean_heart1$SleepTime>=7, "No", "Yes")
+clean_heart1 = data.frame(clean_heart1, AvSleep)
+```
+Similarly, the variable sleep was turned into ‘ifelse logic’ to see the pattern for people sleeping 7+ hours, and the variable name assigned was AvSleep.
+```{r}
+#Assigning ifelse logic to Mental Health. See if the person is not feeling ok in 15 days or more during the month
+Age30Plus = ifelse(clean_heart1$Age>=30, "No", "Yes")
+clean_heart1 = data.frame(clean_heart1, Age30Plus)
+```
+
+After sub setting the data a training model was created to predict the class or value of the target variable, which in this case is Smoking, by learning simple decision rules inferred from this data training.
+```{r}
+#Selecting only the meaningful columns for prediction
+clean_heart1 <- select(clean_heart1, Smoking, Age30Plus, AvSleep, Race, HeartDisease, PhysicalActivity)
+clean_heart1 <- mutate(clean_heart1, Race=factor(Race), PhysicalActivity=factor(PhysicalActivity), Smoking=factor(Smoking))
+```
+
+```{r}
+library('rpart.plot')
+create_train_test1 <- function(data, size = 0.8, train = TRUE) {
+n_row = nrow(data)
+total_row = size * n_row
+train_sample = c(1: total_row)
+if (train == TRUE) {
+return (data[train_sample, ])
+  } else {
+return (data[-train_sample, ])
+  }
+}
+```
+
+
+```{r}
+#Splitting clean_heart into training and testing data
+library(caTools)
+set.seed(123)
+
+data_train1 <- create_train_test1(clean_heart1, 0.8, train = TRUE)
+data_test1 <- create_train_test1(clean_heart1, 0.8, train = FALSE)
+#dim(data_train1)
+#dim(data_test1)
+
+#sample = sample.split(clean_heart$MentalHealth, SplitRatio = .70)
+#train = subset(clean_heart, sample==TRUE)
+#test = subset(clean_heart, sample==FALSE)
+
+```
+
+With the training dataset created, a tree was built responding to smoking as the target value. The results show 9 different nodes, starting with the root node labeled 1) observations and a default decision of No and this accounts for 58% of the data. This node splits into those who are 30 or more (22%) and those who are less than 30 years old (44%). Following the results, node 6 shows that 57% don’t have any heart disease, which leads to node 12 where 40% perform some sort of physical activity, and 49% do not perform any physical activity at all, which can be seen in node 13. Meanwhile, nodes 25 and 27 correspond to races from which node labeled as 26 indicates that 38% are Asian, Black or Hispanic, and node labeled 27 indicates54% are American Indian, Alaskan native, white or other. 
+
+
+```{r}
+#Training the Decision Tree Classifier
+tree1 <- rpart(Smoking ~., data=data_train1, method="class", control = rpart.control(minsplit = 1, minbucket = 1, cp = 0.001))
+#print(tree1)
+```
+
+```{r}
+#summary(tree1)
+```
+Graphically the tree looks like the following plot, and this visually represents, as another conclusion, that surprisingly from node 3, for those less than 30 years old, there is 59% chance of having a heart disease without accounting the other variables.
+
+
+```{r}
+col <- c("#FD8D3C", "#FD8D3C", "#FD8D3C", "#BCBDDC",
+         "#FDD0A2", "#FD8D3C", "#BCBDDC")
+prp(tree1, type=2, extra=104, nn=TRUE, ni=TRUE, fallen.leaves=TRUE, 
+    faclen=0, varlen=0, shadow.col="grey", branch.lty=3)
+
+#we can alsos change extra=104
+```
+The following plot is more visually appealing and resumes the conclusions described above. 
+```{r}
+library("RColorBrewer")
+fancyRpartPlot(tree1, main="Classification Tree for Smoking", palettes="PuRd", type=2)
+
+```
+Additionally, from the tree fit function specific observations were selected to obtain the prediction and the rule used to make that prediction based on the target variable. The results are the following:
+```{r}
+#I created set of rules from the decision tree to see the probabilities per rule
+rpart.rules(tree1)
+#asRules(tree)
+```
+
+
+# Conclusion
+According to the CDC, heart disease is the leading cause of death for men, women, and people of most racial and ethnic groups in the United States (CDC, 2022). After performing the EDA, distributions, tests, regression models, and decision tree we concluded that smoking, strokes, asthma, difficulty walking, kidney disease, diabetes, and skin cancer affect instances of heart disease. 
+In addition to this analysis found in the database, we wanted to explore the response that these instances have on mental health and physical health. For this analysis, we arrived at the following conclusions. First,  the cutoff value of 0.15 is suitable for our logistic regression model, and through this model we found that general health condition, gender, other diseases and smoking habit variables  largely influence the possibility of heart disease. Second, from the classification tree, not practicing any physical activity impacts the perception of people feeling that their mental health was not good (they were not feeling good for 15 or more days in the past month. Finally, From the classification tree, the probability of smoking for people 30 or older, even if they have a heart disease or not, is more than 50%.
+Surprisingly drinking alcohol does not have a great impact on any of the target variables we were looking at: heart disease, mental and physical health, however, smoking has an impact on all three of these aspects. Similarly, BMI as a single measure, did not have any effect on any of the target variables. Studies have shown that BMI would not be expected to identify cardiovascular health or illness overall (Harvard, 2022), and these same findings explain that body composition, including percent body fat or amount of muscle mass, can vary by race and ethnic group and thus wont impact on predicting current healt status. 
+
+
+# References
+Centers for Disease Control and Prevention. (2022). Heart Disease Facts. https://www.cdc.gov/heartdisease/facts.htm
+
+Kaggle. Heart Disease Dataset. (2020). https://www.kaggle.com/datasets/johnsmith88/heart-disease-dataset
+
+Shmerling, R. (2020). How useful is the body mass index (BMI). Harvard Health Publishing. https://www.health.harvard.edu/blog/how-useful-is-the-body-mass-index-bmi-201603309339#:~:text=BMI%2C%20as%20a%20single%20measure,the%20only%20measure%20of%20health!
+
+Walto, A. (2017). The 5 Key Habits For Long-Term Health, According To Science. Forbes. https://www.forbes.com/sites/alicegwalton/2017/07/27/the-5-habits-that-really-define-longterm-health-according-to-science/?sh=6833625f4286
+
+
+
+
